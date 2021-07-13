@@ -1,0 +1,194 @@
+---
+title: Model-based estimation of outcomes and cost-effectiveness of increased naloxone distribution across channels in the United States
+author: 
+
+
+output: 
+  officedown::rdocx_document:
+    mapstyles:
+      Normal: ['First Paragraph']
+    reference_docx: word-style-reference-manuscript.docx
+bibliography: 'Opioid CEA and social outcomes-Naloxone.bib'
+csl: american-medical-association-brackets.csl
+
+header-includes:
+- \usepackage{placeins}
+- \usepackage{amsfonts} 
+- \usepackage{amsmath}
+
+---
+
+
+\newcommand{\1}{\textbf{1}}
+
+
+<br>
+
+W. Alton Russell^1,2^, Reanna Shah^3^, Mohammad Jalali^1,2^, others tbd
+
+
+<br>
+
+^1^Institute for Technology Assessment, Massachusetts General Hospital, Boston, USA
+
+^2^Harvard Medical School, Boston, USA
+
+^3^Duke University, Durham, USA
+
+
+
+<br>
+
+
+**Corresponding author:** 
+
+**Key words:** 
+
+**Running title:** Naloxone distribution
+
+
+
+#####
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(data.table)
+library(scales)
+library(flextable)
+library(officedown)
+library(officer)
+theme_set(theme_bw())
+library(readxl)
+
+
+```
+
+
+```{r, include=FALSE}
+
+
+
+
+```
+
+
+
+
+# Abstract
+
+**Background:** A
+
+**Methods:** A
+
+**Results:** A
+
+**Conclusions:** A
+
+
+#####
+
+
+# Introduction
+> A
+
+<br>
+
+# Methods
+
+> A
+
+## Sub
+
+> A
+
+
+
+# Results
+
+> A
+
+<br>
+
+# Discussion
+
+> A
+
+#####
+
+# Declarations
+
+**Funding:** A
+
+**Conflicts:** A
+
+**Ethics/Consent:** A
+
+**Data and materials:** A
+
+**Code availability:** A
+
+**Authors’ contributions:** 
+
+
+#####
+
+# References
+
+<div id="refs"></div>
+
+#####
+
+::: {custom-style="Compact"}
+| **Table 1** A
+:::
+
+
+
+
+<!---BLOCK_LANDSCAPE_START--->
+
+::: {custom-style="Compact"}
+| **Table 2** Estimated adverse event cases and financial burden by adverse event with and without whole blood pathogen inactivation
+:::
+
+
+
+
+<!---BLOCK_LANDSCAPE_STOP--->
+
+
+
+#####
+![**Fig. 1.** ]()
+
+
+
+#####
+\setcounter{page}{0}
+
+# Supplemental materials
+
+<br>
+
+# A. Calculations for estimating the outcomes of pathogen inactivation
+
+
+#####
+
+::: {custom-style="Compact"}
+| **Table S1** Parameters for the microcosting calculations
+:::
+
+
+
+
+::: {custom-style="hidden_line"}
+| .
+:::
+
+
+#####
+
+
+![]()
+
