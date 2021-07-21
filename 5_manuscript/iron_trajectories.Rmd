@@ -1,0 +1,420 @@
+---
+title: Individualized risk trajectories for iron-related adverse outcomes in repeat blood donors
+author: 
+
+
+output: 
+  officedown::rdocx_document:
+    mapstyles:
+      Normal: ['First Paragraph']
+    reference_docx: word-style-reference-manuscript.docx
+bibliography: tailored_idi.bib
+csl: american-medical-association-brackets.csl
+
+header-includes:
+- \usepackage{placeins}
+- \usepackage{amsfonts} 
+- \usepackage{amsmath}
+---
+
+\newcommand{\1}{\textbf{1}}
+
+<br>
+
+W. Alton Russell^1,2^, David Schienker^1,3,4,5^, Brian Custer^2,6^
+
+<br>
+
+^1^Department of Management Science and Engineering, Stanford University Stanford, CA
+
+^2^Epidemiology and Health Policy Science, Vitalant Research Institute, San Francisco, CA
+
+^3^Lucile Packard Children's Hospital Stanford, Palo Alto, CA, USA
+
+^4^Pediatric Endocrinology, Stanford School of Medicine, Palo Alto, CA, USA
+
+^5^Clinical Excellence Research Center, Stanford School of Medicine, Palo Alto, CA, USA
+
+^6^Department of Laboratory Medicine, University of California, San Francisco, CA
+
+<br>
+
+**Corresponding author:** W. Alton Russell, Management Science and Engineering, Stanford University, Stanford CA 94305. email: [altonr\@stanford.edu](mailto:altonr@stanford.edu){.email}.
+
+**Key words:**
+
+**Running title:**
+
+##### 
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(data.table)
+library(scales)
+library(flextable)
+library(officedown)
+library(officer)
+library(readxl)
+theme_set(theme_bw())
+
+```
+
+# Abstract
+
+**Background:** **Methods:**
+
+**Results:**
+
+**Conclusions:**
+
+##### 
+
+# Introduction
+
+> Observational studies show that frequent blood donation can cause or exacerbate iron deficiency, with higher incidence among teen donors and premenopausal women [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Rigas2014; @Patel2019]. Potential donors are screened using fingerstick hemoglobin or hematocrit tests and deferred if levels are below a minimum cutoff. Such hemoglobin deferrals prevent some collections from iron deficient donors but also consume time and resources from both donor and blood center, decreasing donor satisfaction and likelihood of future donations [@Custer2007]. Because fingerstick hemoglobin is an unreliable indicator of true iron stores, many donors qualify to donate despite having low or absent underlying iron stores [@Baart2013]. More reliable measures of iron status include ferritin, zinc protoporphyrin, soluble transferrin receptor, and hepcidin, but these are more costly to measure and not available as point of care tests [@Kiss2018]. Past studies have identified several factors that increase risk of iron deficiency among blood donors. The Danish Blood Donor Study found that sex, menopause status, and donation history were the strongest predictors of iron deficiency among donors, but weight, age, vitamin use, and diet were also significant [@Rigas2014]. Other studies have come to similar conclusions [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Patel2019].
+
+> Several interventions are available to manage iron deficiency in blood donors, which blood collectors and regulators must assess in terms of their effectiveness, cost, implementation complexity, and impact on ability to meet demand for donated blood. Many countries have longer minimum IDIs than the United States, and some require a longer IDI for female donors as compared to male donors. A large randomized trial in the U.K. found that a longer IDI reduced the frequency of hemoglobin deferrals, low- and absent-iron donations, and self-reported symptoms associated with iron deficiency [@DiAngelantonio2017]. Because most blood donations come from repeat donors (72% of all U.S. donations in 2015 [@Rajbhandary2018]), longer IDIs could make it difficult for blood collectors to meet demand. Some blood centers test donors for ferritin, a more reliable indicator of underlying iron stores as compared to fingerstick hemoglobin, and recommend a longer IDI for donors with low ferritin. A Canadian study found that donors informed of low-ferritin results had a lower return rate and a higher ferritin on return [@Goldman2017], and a large U.S. blood collector has instituted ferritin testing for teenage donors [@Vassallo2018]. At present, ferritin testing is costly and cannot be done at 'point-of-care', meaning that blood centers learn of pre-existing iron deficiency after the additional insult of further iron loss from blood donation. Other blood centers have experimented with providing or recommending iron supplementation to donors [@Mast2016; @Kiss2015], and a U.S. clinical trial estimated that iron supplementation could reduce post-donation time to 80% iron stores recovery from 11-23 weeks to 4-5 weeks [@Kiss2015]. Ferritin testing can be used to target recommendations for iron supplementation, and one study found that the majority of low-ferritin donors preferred taking supplemental iron over lengthening their IDI [@Cable2017]. However, iron supplements can induce gastrointestinal distress [@Bialkowski2015], and some blood collectors worry about liability if donors experience adverse outcomes.
+
+> One unexplored intervention is tailoring the minimum IDI based on each donor's risk of iron-related adverse outcomes. In this analysis, we used data from the REDS-II Donor Iron Status Evaluation (RISE) study [@Cable2012] to develop a prediction model that estimated how a donor's risk of iron-related adverse outcomes would develop as a function of the time until a subsequent donation attempt. We then simulated the impact of prescribing a tailored minimum IDI based on each donor's estimated risk and compared the estimated donation yield and number of adverse outcomes to the baseline and to alternative interventions for donors in the RISE cohort.
+
+<br>
+
+# Methods
+
+> Using data from the RISE study, we trained multiclass prediction models to predict the risk of three iron-related adverse outcomes at a subsequent donation attempt based on the time until the donor returned. The adverse outcomes were hemoglobin deferral and completing a donation with either low or absent iron stores. We assessed the models' predictive performance, compared performance with and without the inclusion of two non-routine biomarkers (ferritin and soluble transferritin receptor [STfR]) as features for prediction, and generated and analyzed individual risk profiles for each donor's likelihood of iron-related adverse donation outcomes at their next visit as a function of how long until they return.
+
+## Data preprocessing and formatting
+
+> The RISE dataset contains data on all visits to a blood center for 2,425 donors over a 2-year period. Data elements include past donation history, biometrics for each visit, and questionnaire responses regarding demographics, diet, supplemental iron consumption, female reproductive health, and demographics from a baseline and final visit. We used 42 features from an index donation together with the time until the donor returns to predict the outcome of a follow-up donation attempt. We assumed that donor characteristics measured at the baseline visit such as diet, vitamin use, smoking, and female reproductive health would not change significantly over the study period, and we used them to predict outcomes following subsequent donations by the same donor. We re-coded or imputed missing values for some fields; Supplemental Table \@ref(tab:t-feature-engineering) contains these details for all features used for prediction. We also included a composite dietary iron consumption score that was generated for each donor in the RISE dataset as part of another secondary analysis [@Spencer2019a]. Two additional biomarkers, ferritin and STfR, were not measured for all follow-up visits and are not routinely collected in most blood centers. We did not include them as features for prediction in the primary model but assessed their impact on predictive performance in a secondary analysis.
+
+> To generate the model development dataset, we considered donations with at least 150 mL of red blood cell loss as potential index donations, which included whole blood donations, apheresis red blood cell donations, and some donations that were classified as 'quantity not sufficient'. For index donations we excluded double red blood cell donations and donations for which no hemoglobin or hematocrit was recorded. If follow-up visits were recorded after potential index donations, we generated labels with the time until the follow-up visit (in days) and its outcome. For all index donations followed by a visit with significant iron loss, defined as a loss of at least 55 mL of red blood cells, we generated a label for the index donation based on the first such follow-up visit. We also generated labels for each index donation based on any follow-up visits that did not result in significant iron loss (i.e., visits resulting in a deferral or apheresis donations of platelets or plasma with \<55 mL of red blood cell loss) if they occurred before any follow-up visits with significant iron loss. For each index donation $i$, the outcome of its follow-up visits ($z_i$) was classified as hemoglobin deferral ($z_i=1$) if one were recorded; as a low iron donation ($z_i=2$) if pre-donation ferritin was $\geq12$ mg/dl and $<20$ mg/dl for women or $\geq12$ mg/dl and $<30$ mg/dl for men; as an absent iron donation ($z_i=3$) if pre-donation ferritin was \<12 mg/dl; and as a 'no adverse outcome' donation otherwise ($z_i=0$). We excluded follow-up donations without ferritin measurements from the model development dataset.
+
+## Prediction model development
+
+### Model selection
+
+> We evaluated several candidate model types: gradient boosted machines, random forest, regression trees, and generalized linear models with elastic net regularization (with and without all second order interaction terms). For each model type we evaluated multiple hyperparameter settings via grid search, with specific hyperparameter values described in Supplemental Table \@ref(tab:t-mod-tuning). We implemented a nested cross validation procedure with resampling to minimize bias in model selection and assessment [@Varma2006]. In this process, we generated 15 *model assessment partitions* which consisted of 3 resamples of 5 equal-sized partitions of the entire dataset that were generated with stratified sampling to ensure the distribution of outcomes was balanced across partitions. For each model assessment partition, we defined all data not included in the partition as the corresponding *model tuning set*. Within the 15 tuning sets, we assessed all candidate model configurations (model type and hyperparameter setting) using 5-fold validation, assessing the multiclass area under the reliever operator characteristic curve (multiclass AUC) using the Hand and Till method [@Hand2001]. We selected the compared models based on the average multiclass AUC across 5 cross validation folds averaged over all 15 tuning sets (assessing a total of 75 realizations of each candidate model configuration).
+
+> We also considered ensemble models, which combine the risk scores from multiple base models. We assessed two methods of combining risk scores from base models:  a simple average and a weighted average, for which we weighted each model's score proportionally to its accuracy raised to a power of four as suggested by Large et. al. [@Large2019]. We assessed AUC for each candidate ensemble configuration across the same 5 cross validation folds within each of the 15 tuning sets.
+
+> we selected the top model configuration based on the highest multiclass AUC. To produce an unbiased assessment of the selected model configuration, we then assessed multiclass AUC on each of the 15 model assessment partitions. For each assessment partition, we trained the model configuration on all data not in the partition and used this model to generate risk scores on the assessment partition. We then calculated multiclass AUC for the partition.
+
+> To assess impact of measuring ferritin and STfR on ability to predict iron-related adverse outcomes at follow-up donation attempts, we repeated this model development process twice. In the 'extra biomarker' model, we used ferritin and soluble transferrin receptor as variables for prediciton. Because these biomarkers are not currently measured for most blood donations in the United States, we also developed a 'standard biomarker' version that excluded ferritin and soluble transferritin receptor.
+
+### Feature importance
+
+> For the two selected model configurations, we also assessed the importance of features for prediction using a random permutation method [@Breiman2001]. In this method, we randomly sample one column of the dataset in each model assessment partition and generate risk scores using a model developed using the top configuration trained on all data not in that partition. We then calculated two measures of feature importance: the percent decrease in AUC and as the percent increase in misclassification rate when that variable is shuffled. for AUC, we compared both the multiclass AUC and the one-vs-rest AUC for each outcome, which provides insight into which features are more important for discriminating which outcome from the others.
+
+### Calibration
+
+> To generate the final model, we retrained the selected model configuration on the entire model development dataset and then calibrated the predicted probabilities to the first return dataset. For this, we estimated the distribution of outcomes for follow-up visits from the first return dataset by assuming that the distribution of absent, low, and 'no-adverse outcome' donations in follow-up donations at which ferritin was not measured would be the same as for those with ferritin measured. Mathematically, we first totaled each follow-up outcome as $n^{(k)}$, where $k=-1, 0, 1, 2, 3$ correspond to the outcomes described above. We then calculated $\tilde{n}^{(k)}$, an estimation of what the totals would have been if ferritin were measured for all follow-up donations, as $\tilde{n}^{(1)} = n^{(1)}$ (hemoglobin deferral) and $\tilde{n}^{(l)} = n^{(l)}+n^{(-1)}\frac{n^{(l)}}{n^{(0)}+n^{(2)}+n^{(3)}}$ for $l=0,2,3$ (completed donations). We then used our top model to generate the unnormalized probability vector $[\hat{q}_i^{(0)}, \hat{q}_i^{(1)}, \hat{q}_i^{(2)}, \hat{q}_i^{(3)}]$ for each index donation $i$. We computed weights $w^{(k)}$ for the unnormalized probability of each outcome $\hat{q}_i^{(k)}$ by solving the system of equations $\sum_{i=1}^I w^{(k)}\hat{q}_i^{(k)}/\sum_{\tilde{k}=0}^4 w^{(\tilde{k})}\hat{q}_i^{(\tilde{k})} = \tilde{n}^{(k)}$ for $k=0,1,2,3$. The final calibrated model used parameters $a^{(k)}$, $b^{(k)}$, and $w^{(k)}$ together with the uncalibrated scores from the model $z_i^{(k)}$ to produce the estimated likelihood of each outcome at a follow-up donation as $\tilde{q}^{(k)}=w^{(k)}\hat{q}^{(k)}/\sum_{\tilde{k}=1}^4 w^{(\tilde{k})}\hat{q}_j^{(\tilde{k})}$ where $\hat{q}_i^{(k)} = \sigma (a^{(k)} z_i^{(k)} + b^{(k)})$. This ensured that the expectation of the distribution of the predicted outcome for the first return dataset would correspond to our estimated totals $\tilde{n}^{(k)}$.
+
+
+
+## Risk profile development and analysis
+
+> For each index donation in the first return dataset, we generated a risk profile by predicting the likelihood of each outcome at the donor's next donation attempt using the calibrated model while varying the time until their follow-up visit from 56 to 250 days. We generated graphical representations of how each donor's estimated risk developed from 56 to 250 days post-donation. To analyze the risk trajectories, we calculated two metrics for each donor, the risk of an adverse outcome on day 56 and the change in risk from day 56 to day 256, and characterized the distribution of these two metrics for donations in the first return dataset.
+
+<br>
+
+# Results
+
+## Data processing
+
+```{r echo=FALSE, include=FALSE}
+library(data.table)
+library(flextable)
+dt.md <- fread( "../data/ml_training_data.csv")
+dt.firstreturn <- fread("../data/first_return_dataset.csv")
+
+add_footnotes <- function(ft, notes){
+  
+  for (idx_note in 1:length(notes)){
+    note =  notes[[idx_note]]
+    if (is.na(note[[2]])){
+      col <- colnames(ft$body$dataset)[1]
+      ft <- compose(ft, i= note[[1]], 
+                  part = note[[3]],
+                  value = as_paragraph(get(col), as_sup(as.character(idx_note))) )
+      
+      ft <- merge_h(ft, i = note[[1]])
+      
+    } else {
+      col = ft$col_keys[note[[2]]]
+      
+      ft <- compose(ft, i= note[[1]], 
+                  j = note[[2]], 
+                  part = note[[3]],
+                  value = as_paragraph(get(col), as_sup(as.character(idx_note))) )
+    }
+    
+  }
+  
+  
+  ft <- compose(ft,
+                i = nrow(ft$body$dataset),
+                part = "body",
+                value = as_paragraph(paste(paste0(1:length(notes), ". ", unlist(sapply(notes, `[`, 4))), collapse='\n')))
+  ft <- merge_h(ft, i = nrow(ft$body$dataset), part="body")
+  # ft <- italic(ft, i = nrow(ft$body$dataset),
+  #               j=1,
+  #               part = "body")
+  ft <- color(ft, i = nrow(ft$body$dataset),
+                j=1,
+              color = "#696969",
+                part = "body")
+  
+  #ft <- merge_h(ft, i = nrow(ft$body$dataset), part="body")
+  
+  return(ft)
+}
+
+flextable_with_foot <- function(dt, notes, group = NA){
+  
+  if (!is.na(group)){
+    
+    # dt <- data.table(as_grouped_data(data.table(df),
+    #                                           groups = "Setting"))
+    # dt <- rbind(dt,
+    #             matrix(NA, ncol = ncol(dt)),
+    #                       use.names = FALSE)
+    # ft <- flextable(dt)
+    dt <- data.table(as_grouped_data(data.table(dt),
+                                              groups = group))
+    
+    dt <- rbind(dt,
+                matrix(NA, ncol = ncol(dt)),
+                          use.names = FALSE)
+    ft <- flextable(dt,
+                    col_keys = colnames(dt)[-1])
+    ft <- compose(ft, i = ~ !is.na(get(group)),
+              value = as_paragraph(get(group)))
+    ft <- add_footnotes(ft, notes)
+    
+    ft <- merge_h(ft, i = !is.na(ft$body$dataset[,1]))
+    
+  } else {
+    ft <- flextable(rbind(data.table(dt),
+                          matrix("blank", ncol = ncol(dt)),
+                          use.names = FALSE))
+    ft <- add_footnotes(ft, notes)
+  }
+  
+  
+  ft <- fontsize(ft, size = 8, part = "all")
+  ft <- align(ft, align = "left", part = "all")
+  ft <- bg(ft, bg = "#EAEAEA", part = "header")
+  ft <- theme_box(ft)
+  
+  return(ft)
+}
+
+
+
+
+dt.md[ , donation_id := paste0(RandID, "-V", VisitNum)]
+tbl_labels_per_idx <- table(dt.md[ , .N, by = donation_id]$N)
+
+```
+
+In the RISE dataset, a total of `r nrow(dt.firstreturn)` donations from `r dt.firstreturn[, uniqueN(RandID)]` donors were followed by at least one follow-up visit. We removed `r dt.firstreturn[is.na(FingerstickHGB_equiv), .N]` index donations because hemoglobin was not recorded, and we removed a further `r dt.firstreturn[time_to_fu < 56, .N]` index donations from the first return dataset because the follow-up visit was less than 56 days later. The first return dataset contained `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56, .N]` index donations labeled with the outcome of the first follow-up donation. That outcome was a hemoglobin deferral for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 1, .N]` index donations; a low-iron donation for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 2, .N]`; an absent iron donation for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 3, .N]`; no adverse outcome for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 0, .N]`; and a completed donation with unknown iron status for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == -1, .N]`. The model development dataset included `r dt.md[ , uniqueN(donation_id)]` unique index donations from `r dt.md[ , uniqueN(RandID)]` donors. `r tbl_labels_per_idx[[1]]` index donations were labeled with one follow-up donation, `r tbl_labels_per_idx[[2]]` were labeled twice, and `r dt.md[ , uniqueN(donation_id)] - tbl_labels_per_idx[[1]] - tbl_labels_per_idx[[2]]` were labeled with 3 or more follow-up visit outcomes (maximum of 8).
+
+## Prediction model
+
+We evaluated over 2,000 model configurations (model type and hyperparameter settings) across the five candidate model types. Figure \@ref(fig:tuning-auc) shows the average overall AUC within the 15 tuning datasets for each model configuration, and Supplemental Table \@ref(tab:t-mod-tuning) shows the top hyperparameter setting for each model type. The overall top model was a gradient boosted decision tree. It had an AUC of 75.0% -- 75.8% across the 15 tuning set and a mean AUC of 76.1% as estimated using the outer cross-validation folds. As shown in Figure \@ref(fig:roc-top), discriminative performance was highest for predicting no adverse outcome donations and lowest for predicting low iron donations. In a secondary analysis, we found that use of ferritin, soluble transferrin receptor, and body iron increased the overall AUC from 77% to 82% among the subset of donations for which those values were recorded. Inclusion of these biomarkers increased discriminative performance most substantially for identifying absent iron donations and had little effect on ability to discriminate hemoglobin deferrals (Figure \@ref(fig:roc-xtracompare)).
+
+Variable importance for the top model in the primary analysis is shown in Figure \@ref(fig:var-imp-top-model) and for the model using extra biomarkers as predicters in Figure \@ref(fig:var-imp-xtra-biomarkers). In the primary analysis, hemoglobin and return time were most important for predicting the outcome of a follow-up donation. When additional biomarkers were used as predictors, ferritin became the most important.
+
+We calculated normalization weights to calibrate the model scores to the expected distribution of outcomes in the first return dataset. They were 1.4 for the probability of no adverse outcome; 0.47 for the probability of a hemoglobin deferral; 1.1 for the probability of a low iron donation; and 1.2 for the probability of an absent iron donation.
+
+\pagebreak
+
+```{r tuning-auc, fig.cap="Overall AUC for each evaluated model configuration assessed using 5-fold cross validation and averaged across 15 tuning sets.", fig.align='center', out.width="80%", echo=FALSE}
+knitr::include_graphics("./figs/AUC_tuning.png")
+```
+
+\pagebreak
+
+```{r roc-top, fig.cap="One vs. all ROC curves for discriminating each outcome.", fig.align='center', out.width="70%", echo=FALSE}
+knitr::include_graphics("./figs/ROC_top_model_ppt.png")
+```
+
+\pagebreak
+
+```{r roc-xtracompare, fig.cap="One vs. all ROC curves with and without ferritin, soluble transferrin receptor, and derived measured", fig.align='center', out.width="100%", echo=FALSE}
+knitr::include_graphics("./figs/ROC_compare_biomarkers_ppt.png")
+```
+
+\noindent Black dot at 75% sensitivity and 75% specificity for visual reference.
+
+\pagebreak
+
+```{r var-imp-top-model, fig.cap="Relative variable importance for the top model in the primary analysis", fig.align='center', out.width="80%", echo=FALSE}
+knitr::include_graphics("./figs/var_impt_top_model.png")
+```
+
+\pagebreak
+
+```{r var-imp-xtra-biomarkers, fig.cap="Relative variable importance for the model with ferritin, soluble transferrin receptor (STfR), and derived measures included as predictors", fig.align='center', out.width="80%", echo=FALSE}
+knitr::include_graphics("./figs/var_impt_xtra_biomarkers.png")
+```
+
+\pagebreak
+
+## Individual risk profiles
+
+Figure \@ref(fig:two-trajectories) shows the individual risk trajectories from two donations: one for a donor whose risk of an adverse outcome was high at day 56 but declined over time and another for a donor who had a low risk of adverse outcomes even at day 56. Supplemental Figure \@ref(fig:sixty-trajectories) shows the same plots for 60 randomly selected index donations from the first return dataset. Notably, estimated risk did not monotonically decrease for all adverse events for all donors. For example, the risk of a low iron donation increased as risk of hemoglobin deferral or an absent iron donation fell for some donors.
+
+Figure \@ref(fig:trajectories-56-v-250) shows the probability of any adverse outcome at post-donation day 56 and post-donation day 250. The median risk of any adverse outcome at day 56 was 71% (IQR 43% -- 86%), but this dropped to 23% (IQR 12% -- 41%) at post-donation day 250. While risk of an adverse outcome fell for most donors, some continued to have a high risk even at post-donation day 250. For 787 donors (11%), estimated risk of any adverse outcome was above 60% at post-donation day 250, which may indicate an underlying iron-related condition unrelated to repeat blood donation.
+
+\pagebreak
+
+```{r two-trajectories, fig.cap="Individual risk trajectory for two example index donations", fig.align='center', out.width="100%", echo=FALSE}
+knitr::include_graphics("./figs/idi_two_trajectories.png")
+```
+
+\pagebreak
+
+```{r trajectories-56-v-250, fig.cap="Probability of any adverse events on post-donation day 56 vs. post-donation day 250.", fig.align='center', out.width="80%", echo=FALSE}
+knitr::include_graphics("./figs/idi_risk_day56_vs_250.png")
+```
+
+\noindent Marginal distributions are plotted. Index donations after which estimated risk does not decrease from post-donation day 56 to day 250 would appear on the red diagonal line. Points further below the diagonal exhibited a greater decrease in risk.
+
+\pagebreak
+
+## Policy simulation
+
+For the cohort of donors represented in our first return dataset, we estimate 408 completed donations per 100 donor-years under the status quo, of which 126.5 would be low iron donations and 95.7 would be absent iron donations. We estimate that 43.6 hemoglobin deferrals would occur over 100 donor-years. Supplemental table \@ref(tab:t-sim-outcomes) shows the expected rate of collections and adverse events for four non-tailored interval policies and 810 versions of the tailored IDI policy. Table \@ref(tab:t-idi-pol-compare) shows the percent reduction in collections and adverse outcomes compared to the status quo for select alternatives. In general, tailored IDIs led to larger decreases in hemoglobin deferrals and absent iron donations than did uniform policies that produced similar decreases in collections. This was not always the case for low iron donations because risk for low iron donations increased over time for some donors.
+
+\pagebreak
+
+```{r t-idi-pol-compare, echo=FALSE, include=FALSE, t.tabcolsep=0, ft.arraystretch=0.8}
+
+dt_all_pol_pessimistic <- fread("../data/all_policies_pessimistic.csv")
+pols_to_display <- c("Tailored 0.5H-0.5L-0.3A",
+                     "Tailored 0.3H-0.3L-0.2A",
+                     "Tailored 0.2H-0.2L-0.1A")
+
+
+dt_all_pol_pessimistic_disp <- dt_all_pol_pessimistic[tailored_IDI==0 | policy %in% pols_to_display]
+
+dt_all_pol_pessimistic_disp[ , Collections := paste0(round(-100*perc_collection_reduct,1), "%")]
+dt_all_pol_pessimistic_disp[ , `HGB deferrals` := paste0(round(-100*perc_defer_reduct,1), "%")]
+dt_all_pol_pessimistic_disp[ , `Low iron donations` := paste0(round(-100*perc_low_reduct,1), "%")]
+dt_all_pol_pessimistic_disp[ , `Absent iron donations` := paste0(round(-100*perc_absent_reduct,1), "%")]
+dt_all_pol_pessimistic_disp[ , Category := ifelse(tailored_IDI==0, "Uniform interval policies", "Tailored policies")]
+
+setorder(dt_all_pol_pessimistic_disp[, .r := order(c(1,2,3,4,7,6,5))], .r)[, .r := NULL]
+
+notes <- list(
+  list(1,NA, "body", "Policies used in Canada, Australia, and the UK. Minimum interval in days for women (W) and for men (W) are indicated."),
+  list(5,NA,"body","Three example tailored policies. Maximum allowable risks for hemoglobin defferal (H), low iron donation (L), and absent iron donation (A) are indicated.")
+)
+
+cols_to_include <- c("Category", "policy", "Collections", "HGB deferrals",  "Low iron donations","Absent iron donations")
+
+group = "Category"
+t.polcompare <- flextable_with_foot(dt_all_pol_pessimistic_disp[-1, .SD, .SDcols = cols_to_include], notes,
+                                              group = "Category")
+t.polcompare <- set_header_labels(t.polcompare, values = c(policy="Policy"))
+t.polcompare <- align(t.polcompare, align = "left", part = "all")
+t.polcompare <- fontsize(t.polcompare, size = 8, part = "all")
+t.polcompare <- bg(t.polcompare, bg = "#EAEAEA", part = "header")
+t.polcompare <- width(t.polcompare, 1, 1.3)
+t.polcompare <- width(t.polcompare, 2:5, 0.8)
+t.polcompare <- bg(t.polcompare, i = c(1, 5), bg = "#DDDDDD", part = "body")
+t.polcompare <- set_caption(t.polcompare, "Percent reduction in the rate of collections and of adverse donation outcomes per donor year as compared to the status quo policy.")
+t.polcompare
+```
+
+# Discussion
+
+Risk of iron-related adverse outcomes at follow-up donations can be estimated as a function of the return time using data available at an index donation. Estimated risk decreased precipitously for most donors if they waited longer to return, suggesting that tailoring donors' IDIs to individual donors' risk profiles may be an effective strategy for managing risk of iron-related adverse donation outcomes without unduly restricting return donations from low-risk donors. Risk for some donors remained high even 250 days later, suggesting that these methods could also be used to identify individuals who may be poor candidates for repeat blood donation due to underlying iron deficiency. Including ferritin as a predictor improved risk estimation, particularly with respect to estimating risk of absent iron donations.
+
+Our analysis has several limitations. The RISE study asked participants to commit to frequent blood donation and targeted recruitment to achieve proportional representation based on gender and donation history [@Cable2011]. Further study is needed to assess the generalizability of our prediction model's performance to a general blood donor population. Additionally, the outcomes we estimated at the population level are specific to the RISE cohort. In particular, the baseline rate of adverse outcomes and the reduction in supply introduced by tailored IDIs may be lower in populations with lower return rates. Another limitation of the RISE data is that ferritin and other biomarkers were not measured for all follow-up visits. We factored this into our analysis by assuming these biomarkers were missing at random, but this may not be the case.
+
+Two other limitations must be overcome before tailored IDIs can be implemented in practice. First, a decision-maker must identify risk thresholds for each adverse outcome in our method. Experts may not agree on the level of risk that is acceptable and how the sufficiency of the blood supply should be weighed against risks to donors. Further work is needed to understand these trade-offs and identify reasonable risk thresholds. Second, this method may face significant barriers to implementation. Sophisticated machine learning techniques for decision-making require technical expertise to develop and maintain and are opaque in the sense that humans cannot readily understand how the system arrived at a decision. In a growing literature on interpretable machine learning, methods have been developed for constructing simpler decision rules that sometimes perform on par with advanced machine learning techniques [@Jung2017; @Ustun2016; @Letham2015; @Lakkaraju2016; @Ustun2019]. Further work is needed to assess barriers to the adoption of the tailored IDI method developed here and to determine whether simpler decision rules might be easier to implement and perform similarly. Despite these limitations, our analysis suggests that individual risk prediction could be a useful tool for ensuring a sufficient blood supply while managing iron-related risks to repeat blood donors.
+
+##### 
+
+# Declarations
+
+**Funding:** A
+
+**Conflicts:** A
+
+**Ethics/Consent:** A
+
+**Data and materials:** A
+
+**Code availability:** A
+
+**Authors' contributions:**
+
+##### 
+
+# References
+
+::: {#refs}
+:::
+
+##### 
+
+::: {custom-style="Compact"}
+| **Table 1** A
+:::
+
+<!---BLOCK_LANDSCAPE_START--->
+
+::: {custom-style="Compact"}
+| **Table 2** Estimated adverse event cases and financial burden by adverse event with and without whole blood pathogen inactivation
+:::
+
+<!---BLOCK_LANDSCAPE_STOP--->
+
+##### 
+
+![**Fig. 1.** Estimated]()
+
+##### 
+
+\setcounter{page}{0}
+
+# Supplemental materials
+
+<br>
+
+# A. Calculations for estimating the outcomes of pathogen inactivation
+
+##### 
+
+::: {custom-style="Compact"}
+| **Table S1** List of features for prediction model with description and notes from feature engineering.
+:::
+
+```{r t-feature-engineering, echo=FALSE}
+t_feature_engineering <- as_flextable(as_grouped_data(read_excel("../data/tables.xlsx", sheet = "features"),
+                                              groups = "Category"))
+t_feature_engineering <- compose(t_feature_engineering, i = ~ !is.na(Category), j = "Variable name",
+              value = as_paragraph(as_chunk(Category)))
+#t_feature_engineering <- set_caption(t_feature_engineering, caption = 'List of features for prediction model with description and notes from feature engineering.')
+t_feature_engineering <- align(t_feature_engineering, align = "left", part = "all")
+t_feature_engineering <- fontsize(t_feature_engineering, size = 10, part = "all")
+t_feature_engineering <- font(t_feature_engineering, fontname = "Times", part = "all")
+t_feature_engineering <- theme_box(t_feature_engineering)
+t_feature_engineering <- bg(t_feature_engineering, bg = "#EAEAEA", part = "header")
+t_feature_engineering <- width(t_feature_engineering, 1, 1.7)
+t_feature_engineering <- width(t_feature_engineering, 2, 2.2)
+t_feature_engineering <- width(t_feature_engineering, 3, 2.6)
+t_feature_engineering <- bg(t_feature_engineering, i = c(1, 10, 21, 45), bg = "#DDDDDD", part = "body")
+t_feature_engineering <- bold(t_feature_engineering, i = c(1, 10, 21, 45), part = "body")
+# t_feature_engineering <- footnote(t_feature_engineering, i=1, j=1, part="header",ref_symbols ="1",
+#                          value=as_paragraph("FFP = fresh or frozen plasma; GBS = Guillain–Barré syndrome; ID-NAT = individual donation nucleic acid testing; IND = investigational new drug; KLT = known local transmission; MP-NAT = mini-pooled NAT; PLT = platelet; PSA = probabilistic sensitivity analysis; RBC = red blood cell; TT = transfusion transmission; ZIKV = Zika virus."))
+
+t_feature_engineering
+```
+
+##### 
+
+![**Fig. S1.** Schematics]()
