@@ -70,8 +70,8 @@ colnames(baselines_XB)[4:9] <- paste0("bl_",colnames(baselines_XB)[4:9])
 featimp_XB <-featimp_XB[feature != "baseline"]
 
 setDT(featimp_XB)[baselines_XB, 
-                    AUC_multi_pctchg := (bl_AUC_multi - AUC_multi)/bl_AUC_multi, 
-                    on=.(rpt, fold)]
+                  AUC_multi_pctchg := (bl_AUC_multi - AUC_multi)/bl_AUC_multi, 
+                  on=.(rpt, fold)]
 
 featimp_XB<-featimp_XB[featname_lookup, on="feature",nomatch=0]
 
@@ -99,4 +99,22 @@ ggplot(featimp_XB[display_name %in% top15_XB])+
   xlab("")
 
 ggsave("./4_output/figs/feat_imp_XB_top15.png",
+       width = 5, height = 4, units = "in")
+
+
+#Combined fig
+featimp_both <- rbind(
+  cbind(mod = "Extra biomarkers", featimp_XB),
+  cbind(mod = "Sandard biomarkers", featimp_noXB)
+)
+
+
+ggplot(featimp_both[display_name %in% c(top15_noXB, top15_XB)])+
+  geom_boxplot(aes(x=reorder(display_name, AUC_multi_pctchg, FUN = median), y=AUC_multi_pctchg))+
+  facet_grid(cols = vars(mod))+
+  coord_flip()+geom_hline(yintercept=0, color="red")+
+  scale_y_continuous(labels = label_percent(), name = "Decrease in multiclass AUC")+
+  xlab("")
+
+ggsave("./4_output/figs/feat_imp_both_top15.png",
        width = 5, height = 4, units = "in")

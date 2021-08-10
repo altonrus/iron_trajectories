@@ -294,6 +294,7 @@ AUCs <- dt_outer_preds_all_repeats[ , list(Overall = multiclass.roc(fu_outcome~Z
 AUCs_mean <- AUCs[,lapply(.SD, mean), by=version, .SDcols=c("Overall", paste0("Z",0:3))]
 
 
+
 roc_objects <- list()
 outcomes <- c("None", "HGB_defer", "Low", "Absent")
 
@@ -373,67 +374,37 @@ ggsave("./4_output/figs/ROC_compare.png",
 
 
 
-
-###
-# FINAL MODELS #############
-###
-#Retrain top model config on whole dataset
-
-#Ensemble="
-train_mod_by_id <- function(mod_id,version){
-  mod_id_split <- unlist(str_split(mod_id, "\\."))
-  mod_name <-mod_id_split[1]
-  if (version=="noXB"){
-    features_list<-features_list_noXB
-  } else {
-    features_list<-features_list_XB
-  }
-
-  hyperparam_idx <- as.numeric(mod_id_split[2])
-  if (mod_name=="XGB"){
-    dt<-features_list$OH
-    params = as.list(xgb_param_sets[hyperparam_idx, ])
-    model=train_mod(mod_name, params, dt)
-  } else if (mod_name=="random_forest"){
-    train_data = features_list$factor
-    params = as.list(rf_param_sets[hyperparam_idx, ])
-    model=train_mod(mod_name, params, train_data)
-  } else if (mod_name=="elastic_net"){
-    train_data = features_list$OH
-    params = as.list(en_param_sets[hyperparam_idx, ])
-    model=train_mod(mod_name, params, train_data)
-  } else if (mod_name=="elastic_net_interactions"){
-    train_data = features_list$Ints
-    params = as.list(enint_param_sets[hyperparam_idx, ])
-    model=train_mod(mod_name, params, train_data)
-  }
-  return(model)
-}
+#AUCS by fold
+AUCs_by_fold <- dt_outer_preds_all_repeats[ , list(Overall = multiclass.roc(fu_outcome~Z0+Z1+Z2+Z3)$auc,
+                                           Z0 = roc(is_Z0~Z0)$auc,
+                                           Z1 = roc(is_Z1~Z1)$auc,
+                                           Z2 = roc(is_Z2~Z2)$auc,
+                                           Z3 = roc(is_Z3~Z3)$auc),
+                                    by= c("version", "rpt", "fold")]
 
 
-#Read in full dataset
-dt.md <- fread( "./1_data/model_dev_data/ml_training_data.csv")
-dt.md<-dt.md[!is.na(ARUP_Ferritin)]
-features_list_noXB<-gen_features_list(dt.md, withXB=FALSE)
-features_list_XB<-gen_features_list(dt.md, withXB=TRUE)
+AUCs_by_fold_mean_CI <- AUCs_by_fold[ , list(
+  overall_mean = mean(Overall),
+  overall_lb = mean(Overall) - sd(Overall)/sqrt(.N),
+  overall_ub = mean(Overall) + sd(Overall)/sqrt(.N),
+  Z0_mean = mean(Z0),
+  Z0_lb = mean(Z0) - sd(Z0)/sqrt(.N),
+  Z0_ub = mean(Z0) + sd(Z0)/sqrt(.N),
+  Z1_mean = mean(Z1),
+  Z1_lb = mean(Z1) - sd(Z1)/sqrt(.N),
+  Z1_ub = mean(Z1) + sd(Z1)/sqrt(.N),
+  Z2_mean = mean(Z2),
+  Z2_lb = mean(Z2) - sd(Z2)/sqrt(.N),
+  Z2_ub = mean(Z2) + sd(Z2)/sqrt(.N),
+  Z3_mean = mean(Z3),
+  Z3_lb = mean(Z3) - sd(Z3)/sqrt(.N),
+  Z3_ub = mean(Z3) + sd(Z3)/sqrt(.N)),
+  by = "version"]
+
+fwrite(AUCs_by_fold_mean_CI, "./4_output/AUC_results_meanCI.csv")
 
 
 
-
-#Generate all base models and add to list
-base_mods_XB <- list()
-for(mod in mods_for_ensemble_XB){
-  base_mods_XB[[mod]]<-train_mod_by_id(mod, version="XB")
-}
-saveRDS(base_mods_XB,
-        file="./1_data/mod_final_base_withXB.RDS")
-
-base_mods_noXB <- list()
-for(mod in mods_for_ensemble_XB){
-  base_mods_noXB[[mod]]<-train_mod_by_id(mod, version="noXB")
-}
-saveRDS(base_mods_noXB,
-        file="./1_data/mod_final_base_noXB.RDS")
 
 
 

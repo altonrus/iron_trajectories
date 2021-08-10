@@ -479,8 +479,6 @@ thresh_absent_m = 12
 thresh_low_f = 20
 thresh_low_m = 30
 
-
-
 d.all[, outcome := fifelse(DER_VisitResult == 3, 
                                   1,#1=HGB deferral
                                   fifelse(is.na(ARUP_Ferritin),
