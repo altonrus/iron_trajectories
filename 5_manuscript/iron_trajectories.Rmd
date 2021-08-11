@@ -74,6 +74,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Introduction
 
+
 > Repeat blood donation can cause or exacerbate iron deficiency, with higher incidence among teen donors and premenopausal women [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Rigas2014; @Patel2019]. In the United States, potential donors are screened using fingerstick hemoglobin or hematocrit tests and deferred if levels are below a minimum cutoff. Such low hemoglobin deferrals prevent some collections from iron deficient donors but consume time and resources from both donor and blood center, decreasing donor satisfaction and the likelihood of returning for future donations [@Custer2007]. Because fingerstick hemoglobin is an unreliable indicator of true iron stores, many donors qualify to donate despite having low or absent underlying iron stores [@Baart2013]. More reliable measures of iron status include ferritin, zinc protoporphyrin, soluble transferrin receptor, and hepcidin, but these are more costly to measure and not available as point of care tests [@Kiss2018]. Past studies have identified several factors that increase risk of iron deficiency among blood donors. The Danish Blood Donor Study found that sex, menopause status, and donation history were the strongest predictors of iron deficiency among donors, and weight, age, vitamin use, and diet were also significant [@Rigas2014]. Similar results have been found for donors in the United States, Australia, and the Netherlands [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Patel2019]. Other studies have analyzed predictors for a low hemoglobin deferral for repeat blood donors, identifying age, time since last donation, and donation history as strong predictors [@Baart2011; @Baart2012]. To our knowledge, no prediction model has been developed that considers the competing risks of hemoglobin deferral and of collecting blood from a donor with sufficient hemoglobin but low or absent underlying iron stores.
 
 > In this study, we developed machine learning models to estimate how risk of hemoglobin deferral and completed donations from donors with low or absent iron stores develop as a function of the donation interval -- the length of time from an index donation until the donor returns for a subsequent donation attempt -- in a cohort of donors from the REDS-II Iron Status Evaluation (RISE) study [@Cable2016]. We also compared predictive performance with and without ferritin and soluble transferritin receptor (STfR), two biomarkers that were available for many donations in the RISE study but are not routinely collected by most US blood centers.
@@ -214,6 +215,7 @@ tbl_labels_per_idx <- table(dt.md[ , .N, by = donation_id]$N)
 
 ```
 
+
 > In the RISE dataset, a total of `r nrow(dt.firstreturn)` donations from `r dt.firstreturn[, uniqueN(RandID)]` donors were followed by at least one follow-up visit. We removed `r dt.firstreturn[is.na(FingerstickHGB_equiv), .N]` index donations because hemoglobin was not recorded, and we removed a further `r dt.firstreturn[time_to_fu < 56, .N]` index donations from the first return dataset because the first follow-up visit with significant iron loss was less than 56 days later. The first return dataset contained `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56, .N]` index donations labeled with the outcome of the first follow-up donation. That outcome was a hemoglobin deferral for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 1, .N]` index donations; a low-iron donation for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 2, .N]`; an absent iron donation for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 3, .N]`; no adverse outcome for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == 0, .N]`; and a completed donation with unknown iron status for `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56 & fu_outcome == -1, .N]`. The model development dataset included `r dt.md[ , uniqueN(donation_id)]` unique index donations from `r dt.md[ , uniqueN(RandID)]` donors. `r tbl_labels_per_idx[[1]]` index donations were labeled with one follow-up donation, `r tbl_labels_per_idx[[2]]` were labeled twice, and `r dt.md[ , uniqueN(donation_id)] - tbl_labels_per_idx[[1]] - tbl_labels_per_idx[[2]]` were labeled with 3 or more follow-up visit outcomes (maximum of 8).
 
 ## Prediction model
@@ -293,34 +295,19 @@ block_caption("One vs. all ROC curves with and without ferritin, soluble transfe
               autonum = fig_num)
 ```
 
-##### 
+#####
+
 
 ```{r fig.width=5, fig.height=6}
-fig_num <- run_autonum(seq_id = "fig",
-                       pre_label = "Figure ",
-                       bkm="f-var-imp-noXB",
-                       bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
-
-knitr::include_graphics("../4_output/figs/feat_imp_noXB.png")
-
-block_caption("Relative variable importance for the top \"standard biomarkers\" model.", 
-              style = "Image Caption", 
-              autonum = fig_num)
-```
-
-##### 
-
-```{r fig.width=5, fig.height=6}
-fig_num <- run_autonum(seq_id = "fig",
-                       pre_label = "Figure ",
+fig_num <- run_autonum(seq_id = "sfig",
+                       pre_label = "Figure S",
                        bkm="f-var-imp-XB",
                        bkm_all = TRUE,
                        prop = fp_text(bold=TRUE, underlined = TRUE))
 
-knitr::include_graphics("../4_output/figs/feat_imp_XB.png")
+knitr::include_graphics("../4_output/figs/feat_imp_both_top15.png")
 
-block_caption("Relative variable importance for the top \"extra biomarkers\" model.", 
+block_caption("Relative variable imprtance for the top \"standard\" and \"extra\" biomarker models. Variables were included in this figure if among the top 15 most important variables for at least one of the models. Full variable importance plots shown in the supplement.", 
               style = "Image Caption", 
               autonum = fig_num)
 ```
@@ -368,7 +355,7 @@ fig_num <- run_autonum(seq_id = "fig",
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_Venous_HGB_tertile.png")
 
-block_caption(".", 
+block_caption(".",
               style = "Image Caption", 
               autonum = fig_num)
 ```
@@ -421,12 +408,14 @@ Blank.
 
 # Supplemental tables
 
+
 ```{r, echo=FALSE}
 stab_num <- run_autonum(seq_id = "stab", 
                        pre_label = "Table S", 
                        bkm="t-feature-engineering",
                        bkm_all = TRUE,
                        prop = fp_text(bold=TRUE, underlined = TRUE))
+
 
 t_feature_engineering <- as_flextable(as_grouped_data(read_excel("../1_data/tables.xlsx", sheet = "features"),
                                               groups = "Category"))
@@ -483,6 +472,7 @@ t_mod_tuning <- set_caption(t_mod_tuning,
 t_mod_tuning
 ```
 
+
 ##### 
 
 # Supplemental figures
@@ -503,7 +493,6 @@ block_caption("Average multiclass AUC for each evaluated model configuration as 
 
 ##### 
 
-# Supplemental figures
 
 ```{r fig.width=6, fig.height=5.5}
 sfig_num <- run_autonum(seq_id = "sfig",
@@ -511,12 +500,46 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        bkm="f-ensemble-auc",
                        bkm_all = TRUE,
                        prop = fp_text(bold=TRUE, underlined = TRUE))
-knitr::include_graphics("../4_output/figs/AUC_tuning_no_ensemble.png")
+knitr::include_graphics("../4_output/figs/AUC_top_models.png")
 
 block_caption("Distribution of multiclass AUC for across the 15 tuning sets for the top ensemble model configurations and the base model configurations that comprised them. For both the ``standard`` and ``extra biomarkers`` versions, the top ensemble was an average of the base models.", 
               style = "Image Caption", 
               autonum = sfig_num)
 
+
+```
+
+##### 
+
+
+```{r fig.width=5, fig.height=6}
+fig_num <- run_autonum(seq_id = "sfig",
+                       pre_label = "Figure S",
+                       bkm="f-var-imp-noXB",
+                       bkm_all = TRUE,
+                       prop = fp_text(bold=TRUE, underlined = TRUE))
+
+knitr::include_graphics("../4_output/figs/feat_imp_noXB.png")
+
+block_caption("Relative variable importance for the top \"standard biomarkers\" model.", 
+              style = "Image Caption", 
+              autonum = fig_num)
+```
+
+##### 
+
+```{r fig.width=5, fig.height=6}
+fig_num <- run_autonum(seq_id = "sfig",
+                       pre_label = "Figure S",
+                       bkm="f-var-imp-XB",
+                       bkm_all = TRUE,
+                       prop = fp_text(bold=TRUE, underlined = TRUE))
+
+knitr::include_graphics("../4_output/figs/feat_imp_XB.png")
+
+block_caption("Relative variable importance for the top \"extra biomarkers\" model.", 
+              style = "Image Caption", 
+              autonum = fig_num)
 ```
 
 ##### 

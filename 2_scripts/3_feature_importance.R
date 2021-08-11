@@ -43,6 +43,7 @@ setDT(featimp_noXB)[baselines_noXB,
 featimp_noXB<-featimp_noXB[featname_lookup, on="feature",nomatch=0]
 
 
+
 ggplot(featimp_noXB)+
   geom_boxplot(aes(x=reorder(display_name, AUC_multi_pctchg, FUN = median), y=AUC_multi_pctchg))+
   coord_flip()+geom_hline(yintercept=0, color="red")+
@@ -75,6 +76,7 @@ setDT(featimp_XB)[baselines_XB,
 
 featimp_XB<-featimp_XB[featname_lookup, on="feature",nomatch=0]
 
+
 # ggplot(featimp_XB, aes(y=reorder(feature, AUC_multi_pctchg, FUN = median), 
 #                          x=AUC_multi_pctchg))+
 #   geom_density_ridges()+
@@ -105,7 +107,11 @@ ggsave("./4_output/figs/feat_imp_XB_top15.png",
 #Combined fig
 featimp_both <- rbind(
   cbind(mod = "Extra biomarkers", featimp_XB),
+<<<<<<< HEAD
   cbind(mod = "Sandard biomarkers", featimp_noXB)
+=======
+  cbind(mod = "Standard biomarkers", featimp_noXB)
+>>>>>>> 13d6b501ac8ccabab8e6904f651037f9baf12be0
 )
 
 
@@ -118,3 +124,17 @@ ggplot(featimp_both[display_name %in% c(top15_noXB, top15_XB)])+
 
 ggsave("./4_output/figs/feat_imp_both_top15.png",
        width = 5, height = 4, units = "in")
+<<<<<<< HEAD
+=======
+
+
+#combined median table
+featimp_XB_median <- featimp_XB[, list(median_AUC_pctchg = median(AUC_multi_pctchg)), by = feature]
+featimp_noXB_median <- featimp_noXB[, list(median_AUC_pctchg = median(AUC_multi_pctchg)), by = feature]
+
+featimp_median <- rbind(
+  cbind(featimp_XB_median, model = "XB"),
+  cbind(featimp_noXB_median, model = "noXB")
+)
+fwrite(featimp_median, "./4_output/feature_importance_medians.csv")
+>>>>>>> 13d6b501ac8ccabab8e6904f651037f9baf12be0
