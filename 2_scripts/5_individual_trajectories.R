@@ -10,7 +10,7 @@ source("2_scripts/utility_functions.R")
 
 # #Read in data
 # weights <- readRDS("./4_output/calib_weights.RDS")
-# features_list_frXB<-readRDS("./1_data/features_scores_frXB.RDS")
+features_list_frXB<-readRDS("./1_data/features_scores_frXB.RDS")
 # features_list_frexcludeXB<-readRDS("./1_data/features_scores_frexcludeXB.RDS")
 # 
 # #Read in models
@@ -35,7 +35,7 @@ dt.frXB <- dt.fr[!is.na(ARUP_Ferritin)]
 
 
 #Risk trajectory matrix
-n_donations = nrow(features_list_frXB$factor)
+n_donations = nrow(dt.frXB)
 max_IDI = 250; min_IDI = 56
 # 
 # #CREATE RISK MATRIX WITH EXTRA BIOMARKERS
@@ -61,19 +61,19 @@ max_IDI = 250; min_IDI = 56
 risk_matrix_XB<- readRDS("./4_output/3d_risk_matrix_XB.RDS")
 
 # #COMPARE DAY 56 and 250 BASE MODELS
-t_return=56
-feature_list_temp <- gen_features_list(dt.temp[ , time_to_fu := t_return],withXB=TRUE)
-preds_56 <- risk_scores_ensemble(features_list=feature_list_temp,
-                              base_mods = base_mods_withXB,
-                              weights = weights$XB,
-                              incl_base_preds = TRUE)
-
-t_return=250
-feature_list_temp <- gen_features_list(dt.temp[ , time_to_fu := t_return],withXB=TRUE)
-preds_250 <- risk_scores_ensemble(features_list=feature_list_temp,
-                                 base_mods = base_mods_withXB,
-                                 weights = weights$XB,
-                                 incl_base_preds = TRUE)
+# t_return=56
+# feature_list_temp <- gen_features_list(dt.temp[ , time_to_fu := t_return],withXB=TRUE)
+# preds_56 <- risk_scores_ensemble(features_list=feature_list_temp,
+#                               base_mods = base_mods_withXB,
+#                               weights = weights$XB,
+#                               incl_base_preds = TRUE)
+# 
+# t_return=250
+# feature_list_temp <- gen_features_list(dt.temp[ , time_to_fu := t_return],withXB=TRUE)
+# preds_250 <- risk_scores_ensemble(features_list=feature_list_temp,
+#                                  base_mods = base_mods_withXB,
+#                                  weights = weights$XB,
+#                                  incl_base_preds = TRUE)
 
 
 # # #CREATE RISK MATRIX WITHOUT EXTRA BIOMARKERS
@@ -101,70 +101,7 @@ preds_250 <- risk_scores_ensemble(features_list=feature_list_temp,
 # summary(risk_matrix_excludeXB[ , "250", "None"] - risk_matrix_excludeXB[ , "56", "None"])
 # 
 # 
-# 1-summary(risk_matrix_XB[ , "56", "None"])
-# 1-summary(risk_matrix_XB[ , "250", "None"])
-# summary(risk_matrix_XB[ , "250", "None"] - risk_matrix_XB[ , "56", "None"])
 
-
-
-
-
-##
-# PLOT INDIVIDUAL TRAJECTORIES -----------
-##
-
-set.seed(10)
-random_donor_nums <- ceiling(runif(60, min=0, max = nrow(dt.frXB)))
-
-for(plot_num in 1:60){
-  donor_num <- random_donor_nums[plot_num]
-  assign(paste0("plot_traj_", plot_num), 
-         ggplot(melt(cbind(data.table(risk_matrix_XB[donor_num, , ]), t = min_IDI:max_IDI), id.vars = "t", measure.vars = c("None", "HGB_defer", "Low", "Absent"))
-                , aes(x=t, y=value, fill=variable)) + 
-           geom_area()+ 
-           scale_y_continuous(expand=c(0,0))+
-           scale_x_continuous(breaks=c(56, 150, 244), expand=c(0,0))+
-           theme(legend.position="none",
-                 axis.text.y = element_blank(),
-                 axis.ticks.y = element_blank(),
-                 axis.line.y = element_blank(),
-                 axis.title = element_blank(),
-                 axis.text.x = element_text(size=10))+
-           scale_fill_manual(values = c("#00FFFF", "#FBD808", "#FF9005", "#FF0000"))
-         #xlab("Days until donation attempt")+
-         #ylab("Probability of outcome")
-         
-  )
-}
-
-
-
-ggsave("./4_output/figs/trajectories_60_random.png",
-       plot = plot_grid(plot_traj_1, plot_traj_2, plot_traj_3, plot_traj_4, plot_traj_5,
-                        plot_traj_6, plot_traj_7, plot_traj_8, plot_traj_9, plot_traj_10, 
-                        plot_traj_11, plot_traj_12, plot_traj_13, plot_traj_14, plot_traj_15,
-                        plot_traj_16, plot_traj_17, plot_traj_18, plot_traj_19, plot_traj_20,
-                        plot_traj_21, plot_traj_22, plot_traj_23, plot_traj_24, plot_traj_25,
-                        plot_traj_26, plot_traj_27, plot_traj_28, plot_traj_29, plot_traj_30, 
-                        plot_traj_31, plot_traj_32, plot_traj_33, plot_traj_34, plot_traj_35,
-                        plot_traj_36, plot_traj_37, plot_traj_38, plot_traj_39, plot_traj_40,
-                        plot_traj_41, plot_traj_42, plot_traj_43, plot_traj_44, plot_traj_45,
-                        plot_traj_46, plot_traj_47, plot_traj_48, plot_traj_49, plot_traj_40, 
-                        plot_traj_51, plot_traj_52, plot_traj_53, plot_traj_54, plot_traj_55,
-                        plot_traj_56, plot_traj_57, plot_traj_58, plot_traj_59, plot_traj_60,
-                        ncol = 5),
-       width = 6.5,
-       height = 8.9,
-       units = "in"
-)
-
-ggsave("./4_output/figs/trajectories_3.png",
-       plot = plot_grid(plot_traj_4, plot_traj_29, plot_traj_6,
-                        ncol = 3),
-       width = 5,
-       height = 1,
-       units = "in"
-)
 
 ##
 # ANALYZE TRAJECTORIES -----------
@@ -181,6 +118,7 @@ dt.firstreturn <- cbind(features_list_frXB$factor,
 summary(dt.firstreturn$Any_AE_day_56)
 summary(dt.firstreturn$Any_AE_day_250)
 
+fwrite(dt.firstreturn, "./1_data/dt_fr_withrisk")
 
 ##SCATTER OF day 56 vs. day 250
 plot <- ggplot(data=dt.firstreturn, 
@@ -219,28 +157,31 @@ am_adt <- function(inarray) { #turns 3d matrix into 2d
 
 dt_long_risk_matrix <- am_adt(risk_matrix_XB)
 setnames(dt_long_risk_matrix, "N", "Risk")
+set.seed(998)
 dt_long_risk_matrix_sm <- dt_long_risk_matrix[Idx_donation %in% sample.int(3685, 300)]
-dt_long_risk_matrix_sm[time_to_fu==56 & outcome=="None"&Risk>.9]
-dt_long_risk_matrix_sm[time_to_fu==250 & outcome=="None" & Risk<.15]
+dt_long_risk_matrix_sm[, ex_group := ""]
+
+#Quick recoverer
+Idx_quick_recoverers <- dt_long_risk_matrix_sm[time_to_fu==56 & outcome=="None"&Risk>.9, unique(Idx_donation)] 
+Idx_chronic <- dt_long_risk_matrix_sm[time_to_fu==250 & outcome=="None" & Risk<.15, unique(Idx_donation)] #Chronic high-risk
 idx_low_start <- dt_long_risk_matrix_sm[time_to_fu==56 & outcome=="None"&Risk<.35]$Idx_donation
-dt_long_risk_matrix_sm[Idx_donation %in% idx_low_start & 
+Idx_slow_recoverers <- dt_long_risk_matrix_sm[Idx_donation %in% idx_low_start & 
                          outcome=="None" &
                          time_to_fu==250 &
-                         Risk>.65, ]
+                         Risk>.60, unique(Idx_donation)] #slow recoverer
 
 
 
-Idx_chronic <- c(8, 304, 712, 1763, 3267)
-Idx_quick_recoverers <- c(1372, 1750, 3036, 3684, 1374)
-Idx_slow_recoverers <- c(129, 394, 2278, 2978, 3596)
-dt_long_risk_matrix_sm[, ex_group := ""]
-dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% Idx_chronic, 
+# Idx_chronic <- c(8, 304, 712, 1763, 3267)
+# Idx_quick_recoverers <- c(1372, 1750, 3036, 3684, 1374)
+# Idx_slow_recoverers <- c(129, 394, 2278, 2978, 3596)
+dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% tail(Idx_chronic,5), 
                                              "Chronic high risk",
                                              ex_group)]
-dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% Idx_quick_recoverers, 
+dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% tail(Idx_quick_recoverers,5), 
                                              "Quick recoverer",
                                              ex_group)]
-dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% Idx_slow_recoverers, 
+dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% tail(Idx_slow_recoverers,5), 
                                              "Slow recoverer",
                                              ex_group)]
 
@@ -303,6 +244,150 @@ ggsave("4_output/figs/any_ae_traject.png",
        height = 2.3,
        units = "in"
 )
+
+
+
+
+##
+# PLOT INDIVIDUAL TRAJECTORIES -----------
+##
+
+set.seed(10)
+random_donor_nums <- ceiling(runif(60, min=0, max = nrow(dt.frXB)))
+
+for(plot_num in 1:60){
+  donor_num <- random_donor_nums[plot_num]
+  assign(paste0("plot_traj_", plot_num), 
+         ggplot(melt(cbind(data.table(risk_matrix_XB[donor_num, , ]), t = min_IDI:max_IDI), id.vars = "t", measure.vars = c("None", "HGB_defer", "Low", "Absent"))
+                , aes(x=t, y=value, fill=variable)) + 
+           geom_area()+ 
+           scale_y_continuous(expand=c(0,0))+
+           scale_x_continuous(breaks=c(56, 150, 244), expand=c(0,0))+
+           theme(legend.position="none",
+                 axis.text.y = element_blank(),
+                 axis.ticks.y = element_blank(),
+                 axis.line.y = element_blank(),
+                 axis.title = element_blank(),
+                 axis.text.x = element_text(size=10))+
+           scale_fill_manual(values = c("#00FFFF", "#FBD808", "#FF9005", "#FF0000"))
+         #xlab("Days until donation attempt")+
+         #ylab("Probability of outcome")
+         
+  )
+}
+
+
+
+ggsave("./4_output/figs/trajectories_60_random.png",
+       plot = plot_grid(plot_traj_1, plot_traj_2, plot_traj_3, plot_traj_4, plot_traj_5,
+                        plot_traj_6, plot_traj_7, plot_traj_8, plot_traj_9, plot_traj_10, 
+                        plot_traj_11, plot_traj_12, plot_traj_13, plot_traj_14, plot_traj_15,
+                        plot_traj_16, plot_traj_17, plot_traj_18, plot_traj_19, plot_traj_20,
+                        plot_traj_21, plot_traj_22, plot_traj_23, plot_traj_24, plot_traj_25,
+                        plot_traj_26, plot_traj_27, plot_traj_28, plot_traj_29, plot_traj_30, 
+                        plot_traj_31, plot_traj_32, plot_traj_33, plot_traj_34, plot_traj_35,
+                        plot_traj_36, plot_traj_37, plot_traj_38, plot_traj_39, plot_traj_40,
+                        plot_traj_41, plot_traj_42, plot_traj_43, plot_traj_44, plot_traj_45,
+                        plot_traj_46, plot_traj_47, plot_traj_48, plot_traj_49, plot_traj_40, 
+                        plot_traj_51, plot_traj_52, plot_traj_53, plot_traj_54, plot_traj_55,
+                        plot_traj_56, plot_traj_57, plot_traj_58, plot_traj_59, plot_traj_60,
+                        ncol = 5),
+       width = 6.5,
+       height = 8.9,
+       units = "in"
+)
+
+ggsave("./4_output/figs/trajectories_3.png",
+       plot = plot_grid(plot_traj_4, plot_traj_29, plot_traj_6,
+                        ncol = 3),
+       width = 5,
+       height = 1,
+       units = "in"
+)
+
+
+#Trajectories for 3 archetypes
+archetype_donor_nums <- c(Idx_chronic[1:10],
+                          Idx_quick_recoverers[1:10],
+                          Idx_slow_recoverers[1:10])
+
+
+for(donor_num in archetype_donor_nums){
+  assign(paste0("plot_archetype_", donor_num), 
+         ggplot(melt(cbind(data.table(risk_matrix_XB[donor_num, , ]), t = min_IDI:max_IDI), id.vars = "t", measure.vars = c("None", "HGB_defer", "Low", "Absent"))
+                , aes(x=t, y=value, fill=variable)) + 
+           geom_area()+ 
+           scale_y_continuous(expand=c(0,0))+
+           scale_x_continuous(breaks=c(56, 150, 244), expand=c(0,0))+
+           theme(legend.position="none",
+                 axis.text.y = element_blank(),
+                 axis.ticks.y = element_blank(),
+                 axis.line.y = element_blank(),
+                 axis.title = element_blank(),
+                 axis.text.x = element_text(size=10))+
+           scale_fill_manual(values = c("#00FFFF", "#FBD808", "#FF9005", "#FF0000"),
+                             labels = c("No adverse outcome",
+                                        "Hemoglobin deferral",
+                                        "Low iron donation",
+                                        "Absent iron donation"
+                             ))
+         #xlab("Days until donation attempt")+
+         #ylab("Probability of outcome")
+         
+  )
+}
+
+title1 <- ggdraw() + 
+  draw_label(
+    "  Fast recoverers",
+    fontface = 'bold',
+    x = 0,
+    hjust = 0
+  ) 
+plot_row_fr <- plot_grid(plot_archetype_247, plot_archetype_849,plot_archetype_1234,plot_archetype_1654,
+                         ncol = 4)
+title2 <- ggdraw() + 
+  draw_label(
+    "  Slow recoverers",
+    fontface = 'bold',
+    x = 0,
+    hjust = 0
+  )
+plot_row_sr <- plot_grid(plot_archetype_121, plot_archetype_394,plot_archetype_787,plot_archetype_1781,
+                         ncol = 4)
+title3 <- ggdraw() + 
+  draw_label(
+    "  Chronic high risk",
+    fontface = 'bold',
+    x = 0,
+    hjust = 0
+  )
+plot_row_chr <- plot_grid(plot_archetype_63, plot_archetype_989,plot_archetype_1431,plot_archetype_679,
+                          ncol = 4)
+
+
+#Get legend
+legend <- get_legend(
+  plot_archetype_121+
+  theme(legend.position = "bottom")+
+    guides(fill=guide_legend(title="Donation outcome",
+                             nrow =2))
+)
+  
+ggsave(
+  "./4_output/figs/indiv_plots_archetypes.png",
+  plot_grid(title1,
+            plot_row_fr,
+            title2,
+            plot_row_sr,
+            title3,
+            plot_row_chr,
+            legend,
+            ncol =1,
+            rel_heights = c(rep(c(0.22, 1),3),.5)),
+  width = 5, height = 4.5, units="in"
+)
+
 
 
 

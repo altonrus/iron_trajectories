@@ -356,7 +356,8 @@ g_legend<-function(a.gplot){
   }
 
 mylegend<-g_legend(
-  ggplot(data = data.table(Cat=c("None", "HGB deferral", "Low iron donation", "Absent iron donation")))+
+  ggplot(data = data.table(Cat=factor(c("No adverse outcome", "HGB deferral", "Low iron donation", "Absent iron donation"),
+                                      levels = c("No adverse outcome", "HGB deferral", "Low iron donation", "Absent iron donation"))))+
     geom_bar(aes(x=Cat, fill=Cat))+
     scale_fill_manual(values=c("turquoise2","yellow2","darkorange1","red1"),
                                name="")+
@@ -369,7 +370,7 @@ ggsave("./4_output/figs/ROC_compare.png",
        plot=grid.arrange(arrangeGrob(ROC_1vall_noXB,ROC_1vall_withXB,nrow=1),
                          mylegend,nrow=2, heights=c(7,1)),
        width = 6.5,
-       height = 3.5,
+       height = 4,
        unit = "in")
 
 
@@ -383,23 +384,15 @@ AUCs_by_fold <- dt_outer_preds_all_repeats[ , list(Overall = multiclass.roc(fu_o
                                     by= c("version", "rpt", "fold")]
 
 
-AUCs_by_fold_mean_CI <- AUCs_by_fold[ , list(
-  overall_mean = mean(Overall),
-  overall_lb = mean(Overall) - sd(Overall)/sqrt(.N),
-  overall_ub = mean(Overall) + sd(Overall)/sqrt(.N),
-  Z0_mean = mean(Z0),
-  Z0_lb = mean(Z0) - sd(Z0)/sqrt(.N),
-  Z0_ub = mean(Z0) + sd(Z0)/sqrt(.N),
-  Z1_mean = mean(Z1),
-  Z1_lb = mean(Z1) - sd(Z1)/sqrt(.N),
-  Z1_ub = mean(Z1) + sd(Z1)/sqrt(.N),
-  Z2_mean = mean(Z2),
-  Z2_lb = mean(Z2) - sd(Z2)/sqrt(.N),
-  Z2_ub = mean(Z2) + sd(Z2)/sqrt(.N),
-  Z3_mean = mean(Z3),
-  Z3_lb = mean(Z3) - sd(Z3)/sqrt(.N),
-  Z3_ub = mean(Z3) + sd(Z3)/sqrt(.N)),
-  by = "version"]
+AUCs_by_fold_long <- melt(AUCs_by_fold, id.vars = 1:3, 
+                          variable.name = "outcome", value.name = "AUC")
+
+
+AUCs_by_fold_mean_CI <- AUCs_by_fold_long[ , list(
+  mean = mean(AUC),
+  lb = mean(AUC) - sd(AUC)/sqrt(.N),
+  ub = mean(AUC) + sd(AUC)/sqrt(.N)),
+  by = c("version","outcome")]
 
 fwrite(AUCs_by_fold_mean_CI, "./4_output/AUC_results_meanCI.csv")
 

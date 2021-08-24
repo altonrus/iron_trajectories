@@ -107,11 +107,7 @@ ggsave("./4_output/figs/feat_imp_XB_top15.png",
 #Combined fig
 featimp_both <- rbind(
   cbind(mod = "Extra biomarkers", featimp_XB),
-<<<<<<< HEAD
-  cbind(mod = "Sandard biomarkers", featimp_noXB)
-=======
   cbind(mod = "Standard biomarkers", featimp_noXB)
->>>>>>> 13d6b501ac8ccabab8e6904f651037f9baf12be0
 )
 
 
@@ -124,8 +120,6 @@ ggplot(featimp_both[display_name %in% c(top15_noXB, top15_XB)])+
 
 ggsave("./4_output/figs/feat_imp_both_top15.png",
        width = 5, height = 4, units = "in")
-<<<<<<< HEAD
-=======
 
 
 #combined median table
@@ -137,4 +131,4 @@ featimp_median <- rbind(
   cbind(featimp_noXB_median, model = "noXB")
 )
 fwrite(featimp_median, "./4_output/feature_importance_medians.csv")
->>>>>>> 13d6b501ac8ccabab8e6904f651037f9baf12be0
+
