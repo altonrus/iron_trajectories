@@ -49,7 +49,7 @@ W. Alton Russell^1,2^, David Schienker^1,3,4,5^, Brian Custer^2,6^
 
 <br>
 
-Main text: 3125 of 3500 words \| Abstract: 249 of 250 words \| Tables: 1 \| Figures: 6
+Main text: 3171 of 3500 words \| Abstract: 249 of 250 words \| Tables: 1 \| Figures: 6
 
 ##### 
 
@@ -68,7 +68,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Abstract
 
-**Background:** Despite a fingerstick hemoglobin requirement and 56-day minimum donation interval, repeat blood donation continue to cause and exacerbate iron deficiency.
+**Background:** Despite a fingerstick hemoglobin requirement and 56-day minimum donation interval, repeat blood donation continues to cause and exacerbate iron deficiency.
 
 **Study design and methods:** Using data from the REDS-II Donor Iron Status Evaluation study, we developed multiclass prediction models to estimate the competing risk of hemoglobin deferral and collecting blood from a donor with sufficient hemoglobin but low or absent underlying iron stores. We compared models developed with and without two biomarkers not routinely measured in most blood centers: ferritin and soluble transferrin receptor. We generated and analyzed 'individual risk trajectories': estimates of how each donors' risk developed as a function of the time interval until their next donation attempt.
 
@@ -84,11 +84,11 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Introduction
 
-> Repeat blood donation can cause or exacerbate iron deficiency, with higher incidence among teen donors and premenopausal women [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Rigas2014; @Patel2019]. In the United States, potential donors are screened using fingerstick hemoglobin or hematocrit tests and deferred if levels are below a minimum cutoff. Currently, minimum hemoglobin levels are 12.5 g/dL for women and 13.0 g/dL for men. Because fingerstick hemoglobin is an unreliable indicator of iron stores, some donors with low or absent iron stores qualify to donate and are subjected to further iron loss [@Baart2013]. In addition, low hemoglobin deferrals consumes time and resources from both donor and blood center, decreasing donor satisfaction and the likelihood of future donations [@Custer2007]. More reliable measures of iron status include ferritin, zinc protoporphyrin, soluble transferrin receptor, and hepcidin, but these are more costly to measure, and most are not yet available as point of care tests [@Kiss2018].
+> Repeat blood donation can cause or exacerbate iron deficiency, with higher incidence among teen donors and premenopausal women [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Rigas2014; @Patel2019]. In the United States, potential donors are screened using fingerstick hemoglobin or hematocrit tests and deferred if levels are below a minimum cutoff. Currently, minimum hemoglobin levels are 12.5 g/dL for women and 13.0 g/dL for men. Because fingerstick hemoglobin is an unreliable indicator of iron stores, some donors with low or absent iron stores qualify to donate and are subjected to further iron loss [@Baart2013]. In addition, low hemoglobin deferrals consume time and resources for both donors and blood centers, decrease donor satisfaction, and reduce the likelihood of future donations [@Custer2007]. More reliable measures of iron status include ferritin, zinc protoporphyrin, soluble transferrin receptor, and hepcidin, but these are more costly to measure, and most are not yet available as point of care tests [@Kiss2018].
 
 > Past studies have identified several factors that increase risk of iron deficiency among blood donors. The Danish Blood Donor Study found that sex, menopause status, and donation history were the strongest predictors of iron deficiency among donors, and weight, age, vitamin use, and diet were also significant [@Rigas2014]. Similar results have been found for donors in the United States, Australia, and the Netherlands [@Cable2012; @Salvin2014; @Spencer2019; @Baart2013; @Patel2019]. Other studies identified age, time since last donation, and donation history as strong predictors of a low hemoglobin deferral for repeat blood donors [@Baart2011; @Baart2012]. To our knowledge, no prediction model has been developed that considers the competing risks of hemoglobin deferral and of collecting blood from a donor with sufficient hemoglobin but low or absent underlying iron stores.
 
-> In this study, we developed machine learning models to estimate how risks of hemoglobin deferral and completed donations from donors with low or absent iron stores develop as a function of the donation interval -- the length of time from an index donation until the donor returns for a subsequent donation attempt -- in a cohort of donors from the REDS-II Iron Status Evaluation (RISE) study [@Cable2016], analyzing variable importance and characterizing donors' risk trajectories.
+> In this study, we used data for a cohort of donors from the REDS-II Iron Status Evaluation (RISE) study [@Cable2016] to develop machine learning models that estimate the risks of hemoglobin deferral and collecting blood from a donor with low or absent iron stores as a function of the donation interval -- the length of time from an index donation until the donor returns for a subsequent donation attempt. We analyzed the models' predictive performance and variable importance, and we used the models to generate and assess donors' risk trajectories.
 
 <br>
 
@@ -98,31 +98,31 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Data preprocessing and formatting
 
-> The RISE dataset contains data from several U.S. blood centers on donation attempts for 2,425 donors over a 2-year period [@Cable2016]. Data elements include donation history, biometrics for each visit, and questionnaire responses regarding demographics, diet, supplemental iron consumption, female reproductive health, and demographics. For the 'standard biomarkers' model, we used 46 variables available for donations in the RISE dataset together with the time interval until the donor returns to predict the outcome of a follow-up donation attempt. We assumed that donor characteristics measured at the baseline visit such as diet, vitamin use, smoking, and female reproductive health indicators would not change significantly over the study period, and we used them to predict outcomes following subsequent donations by the same donor. We also developed an 'extra biomarkers' model, for which we included ferritin, STfRr, and derived measures (log ferritin, ratio of STfR to log ferritin, and calculated body iron) as features for prediction. We re-coded or imputed missing values for some fields; `r run_reference("t-feature-engineering")` contains these details for all features used for prediction. We also included a composite dietary iron consumption score that was generated for each donor in the RISE dataset as part of a previous secondary analysis of this dataset [@Spencer2019a].
+> The RISE dataset contains data from several U.S. blood centers on donation attempts for 2,425 donors over a 2-year period [@Cable2016]. Data elements include donation history, biometrics for each visit, and questionnaire responses regarding demographics, diet, supplemental iron consumption, female reproductive health, and demographics. For the 'standard biomarkers' model, we used 46 variables available for donations in the RISE dataset together with the time interval until the donor returns to predict the outcome of a follow-up donation attempt. We assumed that donor characteristics measured at the baseline visit such as diet, vitamin use, smoking, and female reproductive health indicators would not change significantly over the study period, and we used them to predict outcomes following subsequent donations by the same donor. We also developed an 'extra biomarkers' model, for which we included ferritin, STfRr, and derived measures (log ferritin, ratio of STfR to log ferritin, and calculated body iron) as features for prediction. We re-coded or imputed missing values for some fields; `r run_reference("t-feature-engineering")` contains these details for all features used for prediction. We also included a composite dietary iron consumption score that was generated for each donor in the RISE dataset as part of a prior secondary analysis of this dataset [@Spencer2019a].
 
-> To generate the model development dataset, we considered donations with at least 150 mL of red blood cell loss as potential index donations, which included whole blood donations, mixed apheresis donations that included a single red cell unit, and some donations that were classified as 'quantity not sufficient'. We excluded potential index donations that were double red cell donations due to limited data, the altered iron recovery profiles that follows the large iron loss from double red collection, and the 112-day mandatory deferral period after such donations. We also excluded donations that were missing a measurement of ferritin and donations for which neither fingerstick hemoglobin nor hematocrit was recorded. If follow-up visits were recorded after potential index donations, we generated labels with the time until the follow-up visit (in days) and its outcome. For all index donations followed by a visit with significant iron loss, defined as a loss of at least 55 mL of red blood cells, we generated a label for the index donation based on the first such follow-up visit. Additionally, we generated labels for any follow-up visits that did not result in significant iron loss (i.e., visits resulting in a deferral or apheresis donations of platelets or plasma with \<55 mL of red blood cell loss) if such visits occurred between the index donation and the first follow-up visit with significant iron loss. For each index donation $i$, the outcome of its follow-up visits ($z_i$) was classified as hemoglobin deferral (labeled as $z_i=1$) if one were recorded; as a low iron donation ($z_i=2$) if pre-donation ferritin was $\geq12$ mg/dl and $<20$ mg/dl for women or $\geq12$ mg/dl and $<30$ mg/dl for men; as an absent iron donation ($z_i=3$) if pre-donation ferritin was \<12 mg/dl; and as a 'no adverse outcome' donation otherwise ($z_i=0$). Follow-up donations without ferritin measurements ($z_i=-1$) were not included in the model development dataset but were included in the 'first return' dataset. We used the first return dataset to calibrate the model and generate risk trajectories as described below.
+> To generate the model development dataset, we considered donations with at least 150 mL of red blood cell loss as potential index donations, which included whole blood donations, mixed apheresis donations that included a single red cell unit, and some donations that were classified as 'quantity not sufficient'. We excluded potential index donations that were double red cell donations due to limited data, the altered iron recovery profiles that follows the large iron loss from double red collection, and the 112-day mandatory deferral period after such donations. We also excluded donations that were missing a measurement of ferritin and donations for which neither fingerstick hemoglobin nor hematocrit was recorded. If follow-up visits were recorded after potential index donations, we generated labels with the time until the follow-up visit (in days) and its outcome. For all index donations followed by a visit with significant iron loss, defined as a loss of at least 55 mL of red blood cells, we generated a label for the index donation based on the first such follow-up visit. Additionally, we generated labels for any follow-up visits that did not result in significant iron loss (i.e., visits resulting in a deferral or apheresis donations of platelets or plasma with \<55 mL of red blood cell loss) if such visits occurred between the index donation and the first follow-up visit with significant iron loss. For each index donation $i$, the outcome of its follow-up visits ($z_i$) was classified as hemoglobin deferral (labeled as $z_i=1$) if one were recorded; as a low iron donation ($z_i=2$) if pre-donation ferritin was $\geq12$ mg/dl and $<20$ mg/dl for women or $\geq12$ mg/dl and $<30$ mg/dl for men; as an absent iron donation ($z_i=3$) if pre-donation ferritin was \<12 mg/dl; and as a 'no adverse outcome' donation otherwise ($z_i=0$). Follow-up donations without ferritin measurements ($z_i=-1$) were not included in the model development dataset but were included in a 'first return' dataset. We used the first return dataset to calibrate the model and generate risk trajectories as described below.
 
 ## Prediction model development
 
 ### Model selection
 
-> We evaluated several candidate model types: gradient boosted machines, random forest, regression trees, and generalized linear models with elastic net regularization with and without second order interaction terms. For each model type, to optimize performance while minimizing overfitting, we evaluated multiple parameter configurations via grid search with nested cross validation and resampling (`r run_reference("t-mod-tuning")`) [@Varma2006]. We generated 15 *model assessment partitions* which consisted of 3 resamples of 5 equal-sized partitions of the entire dataset that were generated with stratified sampling to ensure the distribution of outcomes was balanced across partitions. For each model assessment partition, we defined all data not included in the partition as the corresponding *model tuning set*. Within the 15 tuning sets, we assessed all candidate model configurations (model type and hyperparameter setting) using 5-fold validation, assessing the multiclass area under the reliever operator characteristic curve (multiclass AUC) using the Hand and Till method [@Hand2001]. We compared model configurations based on the average multiclass AUC across 5 cross validation folds averaged over all 15 tuning sets (assessing a total of 75 realizations of each candidate model configuration).
+> We evaluated several candidate model types: gradient boosted machines, random forest, regression trees, and generalized linear models with elastic net regularization with and without second order interaction terms. For each model type, to optimize performance while minimizing overfitting, we evaluated multiple parameter configurations via grid search with nested cross validation and resampling (`r run_reference("t-mod-tuning")`) [@Varma2006]. We generated 15 *model assessment partitions* which consisted of 3 resamples of 5 equal-sized partitions of the entire dataset, which we generated with stratified sampling to ensure the distribution of outcomes was balanced across partitions. For each model assessment partition, we defined all data not included in the partition as the corresponding *model tuning set*. Within the 15 tuning sets, we assessed all candidate model configurations (model type and hyperparameter setting) using 5-fold validation, assessing the multiclass area under the reliever operator characteristic curve (multiclass AUC) using the Hand and Till method [@Hand2001]. We compared model configurations based on the average multiclass AUC across 5 cross validation folds averaged over all 15 tuning sets (assessing a total of 75 realizations of each candidate model configuration).
 
 > We also evaluated ensemble models, which combine the risk scores from multiple base models. We assessed two methods of combining risk scores from base models: a simple average and a weighted average, for which we weighted each model's score proportionally to its accuracy raised to a power of four as suggested by Large et. al. [@Large2019]. We assessed AUC for each candidate ensemble configuration across the same 5 cross validation folds within each of the 15 tuning sets.
 
-> We selected the top model configuration based on multiclass AUC. To produce an unbiased assessment of the selected model configuration, we then assessed multiclass AUC on each of the 15 model assessment partitions. For each assessment partition, we trained the model configuration on all data not in the partition and used this model to generate risk scores on the assessment partition which were used to calculate AUC. We repeated this model development process twice: once with ferritin, STfR, and derived measures as features (extra biomarkers model) and once without (standard biomarkers model). We also computed one-vs-rest AUC for each feature, a measures of how well the model discriminates one outcomes from the other three.
+> We selected the top model configuration based on multiclass AUC. To produce an unbiased assessment of the selected model configuration, we then assessed multiclass AUC on each of the 15 model assessment partitions. For each assessment partition, we trained the model configuration on all data not in the partition and used this model to generate risk scores on the assessment partition; we used those risk scores to calculate multiclass AUC. We completed this model development process both with ferritin, STfR, and derived measures as features (extra biomarkers model) and without (standard biomarkers model). We also computed one-vs-rest AUC for each feature, a measure of how well the model discriminates one outcomes from the other three.
 
 ### Feature importance
 
-> For the selected "standard" and "extra biomarkers" model configurations, we assessed the importance of features for prediction using a random permutation method [@Breiman2001]. In this procedure we randomly shuffled one feature column in each model assessment partition and generated risk scores using the model trained on all data not in that partition. We calculated the percent decrease in multiclass AUC when a feature's column was shuffled as compared to the unaltered dataset as a measure of the feature's importance to the model.
+> For the top-performing "standard" and "extra biomarkers" model configurations, we assessed the importance of features for prediction using a random permutation method [@Breiman2001]. We trained the model on an altered version of each model tuning sets for which one feature column was randomly shuffled. We then generated risk scores for the corresponding model assessment partition and calculated the multiclass AUC. We calculated the percent decrease in multiclass AUC when a feature's column was shuffled as compared to using the unaltered model tuning sets, which we used as a measure of the feature's importance to the model.
 
 ### Calibration
 
-> To generate the final model, we retrained the selected model configurations on the entire model development dataset and then calibrated the predicted probabilities to a 'first return' dataset, wherein index donations were labeled only once with the outcome of the first subsequent donation attempt, including follow-up donations with no ferritin measurement. We estimated the distribution of outcomes for follow-up visits from the first return dataset by assuming that the distribution of absent, low, and 'no-adverse outcome' donations in follow-up donations for which ferritin was not measured would be the same as for those with ferritin measurements; mathematical details are provided in the supplemental methods.
+> To generate the final model, we retrained the selected model configurations on the entire model development dataset, then we calibrated the predicted probabilities to the 'first return' dataset.  In this dataset, index donations were labeled only once with the outcome of the first subsequent donation attempt, which included follow-up donations with no ferritin measurement. We estimated the distribution of outcomes in this dataset by assuming that followup donations with no ferritin measurement would have the same distribution of absent, low, and 'no-adverse outcome' donations as did the follow-up donations for which ferritin was measured. Mathematical details are provided in the supplemental methods.
 
 ## Risk trajectory analysis
 
-> For each index donation, we generated a risk trajectory by predicting the likelihood of each outcome at the donor's next donation attempt for each possible follow-up donation interval between 56 and 250 days using the calibrated 'extra biomarkers' model. We generated graphical representations of individual donors' risk trajectories showing how the estimated of each adverse outcome evolves depending on the number of days until the donor returns. To illustrate differences in risk trajectories, we created three recovery archetypes: 'fast recoverers' (\<10% risk of any adverse outcome on post-donation day 56), 'slow recoverers' (\>60% adverse outcome risk on day 56 that declines to \<35% by day 250), and 'chronic high risk' (\>85% risk of adverse outcome on day 250). In a separate subgroup analysis, we compared the mean and 95% confidence interval for the estimated risk of each adverse outcome as a function of the donation interval for groups of donors stratified by selected parameters.
+> For each index donation, we generated a risk trajectory using the calibrated 'extra biomarkers' model by predicting the likelihood of each outcome at the donor's next donation attempt for each possible follow-up donation interval between 56 and 250 days. We generated graphical representations of individual donors' risk trajectories showing how the estimated of each adverse outcome evolves depending on the number of days until the donor returns. To illustrate differences in risk trajectories, we created three recovery archetypes: 'fast recoverers' (\<10% risk of any adverse outcome on post-donation day 56), 'slow recoverers' (\>60% adverse outcome risk on day 56 that declines to \<35% by day 250), and 'chronic high-risk' (\>85% risk of adverse outcome on day 250). In a separate subgroup analysis, we compared the mean and 95% confidence interval for the estimated risk of each adverse outcome as a function of the donation interval for groups of donors stratified by selected parameters.
 
 <br>
 
@@ -273,7 +273,7 @@ dt.feat_imp_medians <- fread("../4_output/feature_importance_medians.csv")
 
 ```
 
-> Separately for the standard and extra biomarker versions, we evaluated 2,006 non-ensembled model configurations (model type and hyperparameter setting) and four enemble models. For both versions, the top-performing non-ensembled model was a gradient boosted machine (`r run_reference("f-tuning-auc")`, `r run_reference("t-mod-tuning")`). The top-performing standard biomarkers model configuration was an ensemble model that averaged risk scores for three gradient boosted machine and three random forest models; the top extra biomarkers configuration was an ensemble model that averaged risk scores for two gradient boosted machines, a random forest model, and two penalized regression models, one with second order interaction terms. Multiclass AUC for the top ensemble models assessed on the model assessment partitions was `r dt.aucs[version=="noXB"&outcome=="Overall",disp_val]` for the standard biomarkers model and `r dt.aucs[version=="withXB"&outcome=="Overall",disp_val]` for the extra biomarkers model. For both the standard and extra biomarkers model, the top ensemble model had a higher mean AUC with lower standard error than each of the base models that comprised it across the model tuning sets (`r run_reference("f-ensemble-auc")`). Both models had the highest discriminative performance for predicting no adverse outcome donations and lowest for predicting low iron donations (`r run_reference("f-roc-compare")`). Inclusion of the extra biomarkers had the greatest improvement in distinguishing low and absent iron donations from the other outcomes (one-vs-rest AUC increased `r dt.aucs_diff[outcome=="Z2",Difference]` for low iron donations and `r dt.aucs_diff[outcome=="Z3",Difference]` for absent iron donations; `r run_reference("t-auc-compare")`).
+> Separately for the standard and extra biomarker versions, we evaluated 2,006 non-ensembled model configurations (model type and hyperparameter setting) and four enemble models. For both versions, the top-performing non-ensembled model was a gradient boosted machine (`r run_reference("f-tuning-auc")`, `r run_reference("t-mod-tuning")`). The top-performing standard biomarkers model configuration was an ensemble model that averaged the risk scores for three gradient boosted machine and three random forest models; the top extra biomarkers configuration was an ensemble model that averaged risk scores for two gradient boosted machines, a random forest model, and two penalized regression models, one with second order interaction terms. Multiclass AUC for the top ensemble models assessed on the model assessment partitions was `r dt.aucs[version=="noXB"&outcome=="Overall",disp_val]` for the standard biomarkers model and `r dt.aucs[version=="withXB"&outcome=="Overall",disp_val]` for the extra biomarkers model (`r run_reference("t-auc-compare")`). For both the standard and extra biomarkers model, the top ensemble model had a higher mean AUC with lower standard error than each of the base models that comprised it across the model tuning sets (`r run_reference("f-ensemble-auc")`). Both models had the highest discriminative performance for predicting no adverse outcome donations and the lowest discriminative performance for predicting low iron donations (`r run_reference("f-roc-compare")`). Inclusion of the extra biomarkers had the greatest improvement in distinguishing low and absent iron donations from the other outcomes (one-vs-rest AUC increased `r dt.aucs_diff[outcome=="Z2",Difference]` for low iron donations and `r dt.aucs_diff[outcome=="Z3",Difference]` for absent iron donations; `r run_reference("t-auc-compare")`).
 
 > For the standard biomarkers model, the donation interval (time to return) was the most important feature for prediction (the median decrease in multiclass AUC when shuffling this feature was `r dt.feat_imp_medians[feature=="time_to_fu" & model=="noXB", percent(median_AUC_pctchg, accuracy = 0.1)]`), followed by venous hemoglobin and the number of red blood cell units donated in the last 24 months (median decreases in multiclass AUC of `r dt.feat_imp_medians[feature=="DER_AdjVenousHgb" & model=="noXB", percent(median_AUC_pctchg, accuracy = 0.1)]`, and `r dt.feat_imp_medians[feature=="DER_RBC_Last24months" & model=="noXB", percent(median_AUC_pctchg, accuracy = 0.1)]`, respectively; `r run_reference("f-var-imp-both")` and `r run_reference("f-var-imp-noXB")`). For the extra biomarkers model, ferritin was by far the most important feature, followed by donation interval and fingerstick hemoglobin/hematocrit (median decreases in multiclass AUC of `r dt.feat_imp_medians[feature=="ARUP_Ferritin" & model=="XB", percent(median_AUC_pctchg, accuracy = 0.1)]`, `r dt.feat_imp_medians[feature=="time_to_fu" & model=="XB", percent(median_AUC_pctchg, accuracy = 0.1)]`, and `r dt.feat_imp_medians[feature=="FingerstickHGB_equiv" & model=="XB", percent(median_AUC_pctchg, accuracy = 0.1)]`, respectively; `r run_reference("f-var-imp-both")` and `r run_reference("f-var-imp-XB")`). For both versions, the calibration weights down-weighted relative likelihood of hemoglobin deferrals (`r run_reference("t-calib-weights")`).
 
@@ -288,7 +288,7 @@ summary(risk_matrix_XB[ , "250", "None"] - risk_matrix_XB[ , "56", "None"])
 
 dt.fr_risk <- fread("../1_data/dt_fr_withrisk")
 dt.fr_risk[,archetype:=fifelse(Any_AE_day_56 < .1, "Fast recoverer",
-                                   fifelse(Any_AE_day_250 > .85, "Chronic high risk",
+                                   fifelse(Any_AE_day_250 > .85, "Chronic high-risk",
                                            fifelse(Any_AE_day_56 > .60 & Any_AE_day_250 <.35, "Slow recoverer",
                                                    "Other")))]
 
@@ -297,13 +297,13 @@ dt.fr_risk[,archetype:=fifelse(Any_AE_day_56 < .1, "Fast recoverer",
 
 > Using the calibrated extra biomarkers model on the first return dataset, the median risk of any adverse outcome with a 56-day donation interval was `r percent(median(risk_56))` (Interquartile range [IQR] `r percent(quantile(risk_56, 0.25))` -- `r percent(quantile(risk_56,0.75))`). For a 250-day interval, the median risk of any adverse outcome fell to `r percent(median(risk_250))` (IQR `r percent(quantile(risk_250, 0.25))` -- `r percent(quantile(risk_250,0.75))`). The median decrease in absolute risk from an interval of 56 to 250 days was `r percent(median(risk_56 - risk_250))` (IQR `r percent(quantile(risk_56 - risk_250, 0.25))` -- `r percent(quantile(risk_56 - risk_250,0.75))`).
 
-> Individual donor risk trajectories were highly heterogeneous (`r run_reference("f-sixty-trajectories")`). Across the first return dataset, `r dt.fr_risk[archetype=="Fast recoverer",.N]` (`r percent(dt.fr_risk[archetype=="Fast recoverer",.N]/nrow(dt.fr_risk))`) index donations were by a fast recoverer (\<10% risk of any adverse outcome on post-donation day 56), `r dt.fr_risk[archetype=="Slow recoverer",.N]` (`r percent(dt.fr_risk[archetype=="Slow recoverer",.N]/nrow(dt.fr_risk))`) index donations were by a slow recoverer (\>60% adverse outcome risk on day 56 and \<35% on day 250), and `r dt.fr_risk[archetype=="Chronic high risk",.N]` (`r percent(dt.fr_risk[archetype=="Chronic high risk",.N]/nrow(dt.fr_risk))`) index donations were by a chronic high risk donor (\>85% risk of adverse outcome on day 250). Risk trajectories differed markedly across these three archetypes (`r run_reference("f-indiv_trajects_archetypes")`). For chronic high risk donors, while overall adverse outcome risk declined for longer donation intervals, in most cases risk of a low iron donation increased for longer donation intervals rose as the risk of hemoglobin deferral or adverse iron donation fell (`r run_reference("f-ae-trajectory-examples")` ).
+> Individual donor risk trajectories were highly heterogeneous (`r run_reference("f-sixty-trajectories")`). Across the first return dataset, `r dt.fr_risk[archetype=="Fast recoverer",.N]` (`r percent(dt.fr_risk[archetype=="Fast recoverer",.N]/nrow(dt.fr_risk))`) index donations were by a fast recoverer (\<10% risk of any adverse outcome on post-donation day 56), `r dt.fr_risk[archetype=="Slow recoverer",.N]` (`r percent(dt.fr_risk[archetype=="Slow recoverer",.N]/nrow(dt.fr_risk))`) index donations were by a slow recoverer (\>60% adverse outcome risk on day 56 and \<35% on day 250), and `r dt.fr_risk[archetype=="Chronic  prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE)",.N]` (`r percent(dt.fr_risk[archetype=="Chronic high-risk",.N]/nrow(dt.fr_risk))`) index donations were by a chronic prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE) donor (\>85% risk of adverse outcome on day 250). Risk trajectories differed markedly across these three archetypes (`r run_reference("f-indiv_trajects_archetypes")`). For chronic high-risk donors, while overall adverse outcome risk slightly declined for longer donation intervals, risk of a low iron donation increased with donation interval for most donors (`r run_reference("f-ae-trajectory-examples")` ).
 
-> In cohort analysis, average risk of an adverse outcome was lowest for iron replete donors and highest for donors with absent iron at the index donation (`r run_reference("f-traject-by-iron-status")`). While overall adverse outcome risk declined with longer donation intervals for all three cohorts, risk of a low iron donation increased with longer intervals for donors with absent iron stores at the index donation. when defining cohorts based on the tertile of venous hemoglobin at the index donation, donors with venous hemoglobin in the lowest tertile (9.8-13 g/dL) had the highest risk of any adverse outcome, similar to donors with absent iron stores (`r run_reference("f-traject-by-venous-hgb")`). However, while an absent iron donation was the most likely adverse outcome for a donor with absent iron stores at index donation, a hemoglobin deferral was the most likely outcome for a donor in the lowest tertile of venous hemoglobin at index donation. Average risk trajectory also differed across cohorts defined by gender (`r run_reference("f-traject-by-gender")`), number of red blood cell units donated over the prior two years (`r run_reference("f-traject-by-RBC-loss")`), self-reported iron supplementation use (`r run_reference("f-traject-iron_supplementation")`), and composite dietary heme iron intake (`r run_reference("f-traject-composite_iron")`).
+> In cohort analysis, average risk of an adverse outcome was lowest for iron replete donors and highest for donors with absent iron at the index donation; average risk for low-iron donors was in between that of the other two cohorts (`r run_reference("f-traject-by-iron-status")`). While overall adverse outcome risk declined with longer donation intervals for all three cohorts, risk of a low iron donation increased with longer intervals for donors with absent iron stores at the index donation. when defining cohorts based on the tertile of venous hemoglobin at the index donation, donors with venous hemoglobin in the lowest tertile (9.8-13 g/dL) had the highest risk of any adverse outcome (`r run_reference("f-traject-by-venous-hgb")`). Whereas an absent iron donation was the most likely adverse outcome for a donor with absent iron stores at index donation, hemoglobin deferral was the most likely adverse outcome for a donor in the lowest tertile of venous hemoglobin at index donation. Average risk trajectory also differed across cohorts defined by gender (`r run_reference("f-traject-by-gender")`), number of red blood cell units donated over the prior two years (`r run_reference("f-traject-by-RBC-loss")`), self-reported iron supplementation use (`r run_reference("f-traject-iron_supplementation")`), and composite dietary heme iron intake (`r run_reference("f-traject-composite_iron")`).
 
 # Discussion
 
-> In our analysis of donors from the RISE study, we found that risk of iron-related adverse outcomes at follow-up donations can be estimated as a function of the interval before a follow-up donation attempt, and individual donors' risk trajectories are highly heterogeneous. Estimated risk decreased precipitously for most donors if they waited longer to return, suggesting that longer minimum donation intervals would prevent some cases of donor-associated iron deficiency and hemoglobin deferrals. However, heterogeneity in estimated risk trajectories suggests that uniform or sex-based intervals may be insufficient. Using ferritin and soluble transferrin receptor improved risk estimation, particularly with respect to estimating risk of absent iron donations. For some donors, estimated risk of an adverse outcome remained over 90% even for a 250-day donation interval. These donors may have underlying (and potentially undiagnosed) iron deficiency or a related condition, which may make them poor candidates for repeat blood donation. The heterogeneity in donor risk and the predictive power associated with the use of donor characteristics should be examined further in order to facilitate policy design such as personalized inter-donation intervals.
+> This analysis of `r dt.firstreturn[!is.na(FingerstickHGB_equiv) & time_to_fu >= 56, .N]` index donations from the RISE study found that risk of iron-related adverse outcomes at follow-up donations can be estimated as a function of the interval before a follow-up donation attempt and that individual donors' risk trajectories are highly heterogeneous. Formost donors, estimated risk decreased precipitously if they waited longer to return, suggesting that longer minimum donation intervals would prevent some cases of donor-associated iron deficiency and hemoglobin deferrals. For some donors, risk remained high even with a 250-day donation interval. This heterogeneity in estimated risk trajectories suggests that uniform or sex-based intervals may be insufficient. Including ferritin as a predictor improved risk estimation, particularly with respect to estimating risk of absent iron donations. For some donors, estimated risk of an adverse outcome remained over 90% even for a 250-day donation interval. These donors may have underlying (and potentially undiagnosed) iron deficiency or a related condition, which may make them poor candidates for repeat blood donation. The heterogeneity in donor risk and the predictive power associated with the use of donor characteristics should be examined further in order to facilitate policy design such as personalized inter-donation intervals.
 
 > Our analysis has several limitations. Most notably, the RISE study population is not representative of a typical repeat blood donor population. RISE participants were asked to commit to frequent blood donation, and recruitment was targeted to achieve proportional representation based on sex and donation history [@Cable2011]. Furthermore, we restricted our analysis to the subset of donations in the RISE study for which ferritin was measured, which may further bias our findings. Further study is needed to assess the generalizability of our prediction model's performance to a more representative blood donor population. Many of the features we used for prediction are highly correlated (e.g., venous and fingerstick hemoglobin; 12- and 24-month donation history), which can cause feature importance to 'spread' over correlated features [@Tolosi2011]. Due to this, our feature importance method should only be interpreted as which features the model relied on most (or was most sensitive to) rather than which features are most correlated with adverse outcome risk. To calibrate our model, we assumed the distribution of absent, low, and replete iron status for follow-up donations without a ferritin measurement mirrored the distribution across follow-up donations at which ferritin was measured, but this may not be the case.
 
@@ -345,7 +345,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        pre_label = "Figure ",
                        bkm="f-roc-compare",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                       prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ROC_compare.png")
 
@@ -361,7 +361,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        pre_label = "Figure ",
                        bkm="f-var-imp-both",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/feat_imp_both_top15.png")
 
@@ -377,7 +377,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        pre_label = "Figure ",
                        bkm="f-indiv_trajects_archetypes",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/indiv_plots_archetypes.png")
 
@@ -393,7 +393,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        pre_label = "Figure ",
                        bkm="f-ae-trajectory-examples",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/each_ae_traject.png")
 
@@ -409,7 +409,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        pre_label = "Figure ",
                        bkm="f-traject-by-iron-status",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_Index_donation_iron_status.png")
 
@@ -425,7 +425,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        pre_label = "Figure ",
                        bkm="f-traject-by-venous-hgb",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_Venous_HGB_tertile.png")
 
@@ -443,7 +443,7 @@ tab_num <- run_autonum(seq_id = "tab",
                        pre_label = "Table ", 
                        bkm="t-auc-compare",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 t_model_aucs <- flextable(dt.aucs_tab[,1:5])
 t_model_aucs <- set_header_labels(t_model_aucs,
@@ -493,7 +493,7 @@ stab_num <- run_autonum(seq_id = "stab",
                        pre_label = "Table S", 
                        bkm="t-feature-engineering",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 
 t_feature_engineering <- as_flextable(as_grouped_data(read_excel("../1_data/tables.xlsx", sheet = "features"),
@@ -528,7 +528,7 @@ stab_num <- run_autonum(seq_id = "stab",
                        pre_label = "Table S", 
                        bkm="t-mod-tuning",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 
 
@@ -571,7 +571,7 @@ stab_num <- run_autonum(seq_id = "stab",
                        pre_label = "Table S", 
                        bkm="t-calib-weights",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 t_weights <- flextable(dt.weights)
 t_weights <- align(t_weights, align = "left", part = "all")
@@ -595,7 +595,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-tuning-auc",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 knitr::include_graphics("../4_output/figs/AUC_tuning_no_ensemble.png")
 
 block_caption("Average multiclass AUC for each evaluated model configuration as assessed using 5-fold cross validation and averaged across 15 tuning sets (excluding ensemble models). Each configuration (model type and hyperparameter set) is plotted as a dot. Distributions for each model type are shown.", 
@@ -611,7 +611,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-ensemble-auc",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 knitr::include_graphics("../4_output/figs/AUC_top_models.png")
 
 block_caption("Distribution of multiclass AUC for across the 15 tuning sets for the top ensemble model configurations and the base model configurations that comprised them. For both the ``standard`` and ``extra biomarkers`` versions, the top ensemble was an average of the base models.", 
@@ -628,7 +628,7 @@ fig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-var-imp-noXB",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/feat_imp_noXB.png")
 
@@ -644,7 +644,7 @@ fig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-var-imp-XB",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/feat_imp_XB.png")
 
@@ -660,7 +660,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-sixty-trajectories",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/trajectories_60_random.png")
 
@@ -676,7 +676,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-traject-by-gender",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_Gender.png")
 
@@ -692,7 +692,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-traject-by-RBC-loss",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_RBC_units_lost_prior_24_months_tertile.png")
 
@@ -708,7 +708,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-traject-iron_supplementation",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_Iron_supplementation.png")
 
@@ -724,7 +724,7 @@ sfig_num <- run_autonum(seq_id = "sfig",
                        pre_label = "Figure S",
                        bkm="f-traject-composite_iron",
                        bkm_all = TRUE,
-                       prop = fp_text(bold=TRUE, underlined = TRUE))
+                        prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
 knitr::include_graphics("../4_output/figs/ae_traject_by_Composite_iron_tertile.png")
 
