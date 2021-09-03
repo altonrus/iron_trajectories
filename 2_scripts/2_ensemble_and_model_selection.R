@@ -29,8 +29,8 @@ tune_results_XB <-
 
 
 tune_results_all <- rbind(
-  cbind(tune_results_noXB, version="Without extra biomarkers"),
-  cbind(tune_results_XB, version="With extra biomarkers")
+  cbind(tune_results_noXB, version="Standard biomarkers"),
+  cbind(tune_results_XB, version="Extra biomarkers")
 )
 
 tune_results_all[ , AUC_sd := sd(.SD), .SDcols = paste0("AUC_",formatC(1:15, width=2, flag="0")), by=1:nrow(tune_results_all)]
@@ -90,10 +90,12 @@ ggsave("./4_output/figs/AUC_tuning_no_ensemble.png",
 # 2 GBM within 1 SD of top that are the least correlated
 
 
-#vers = "Without extra biomarkers"
+#vers = "Standard biomarkers"
 
 tune_results_all <- fread("./3_intermediate/tuning_results/tuning_results_all.csv")
 
+
+#Selects top model configurations for the ensemble and returns their names
 top_mods <- function(tune_results_all, vers,
                      ensemb_type="3GBM3FR"){
   setorder(tune_results_all, version, -AUC_mean)
@@ -150,9 +152,9 @@ top_mods <- function(tune_results_all, vers,
   return(mods_for_ensemble)
 }
 
-mods_for_ensemble_XB <- top_mods(tune_results_all, "With extra biomarkers",
+mods_for_ensemble_XB <- top_mods(tune_results_all, "Extra biomarkers",
                                  ensemb_type="all_mods")
-mods_for_ensemble_noXB <- top_mods(tune_results_all, "Without extra biomarkers")
+mods_for_ensemble_noXB <- top_mods(tune_results_all, "Standard biomarkers")
 
 
 
@@ -161,6 +163,7 @@ xgb_param_sets <- fread("./3_intermediate/hyperparam_sets/xgb_param_sets.csv")
 rf_param_sets<-fread("./3_intermediate/hyperparam_sets/rf_param_sets.csv")
 en_param_sets<-fread("./3_intermediate/hyperparam_sets/en_param_sets.csv")
 enint_param_sets<-fread("./3_intermediate/hyperparam_sets/enint_param_sets.csv")
+rpart_param_sets<-fread("./3_intermediate/hyperparam_sets/rpart_param_sets.csv")
 
 rsplit_factor_withXB<- readRDS("./1_data/rsplits/rsplit_factors_withXB.rds")
 rsplit_factor_noXB<-readRDS("./1_data/rsplits/rsplit_factors_noXB.rds")
@@ -202,15 +205,15 @@ tune_results_all<-fread("./3_intermediate/tuning_results/tuning_results_all.csv"
 
 top_mods_ensemble<-rbind(
   tune_results_all[modelID %in% mods_for_ensemble_XB &
-                     version=="With extra biomarkers", .SD,
+                     version=="Extra biomarkers", .SD,
                    .SDcols=c("version", "modelID", paste0("AUC_",c(str_pad(1:15, 2, pad="0"), "mean")))],
-  cbind(version="With extra biomarkers",
+  cbind(version="Extra biomarkers",
         modelID="Ensemble", 
         ensemble_XB),
   tune_results_all[modelID %in% mods_for_ensemble_noXB &
-                     version=="Without extra biomarkers", .SD,
+                     version=="Standard biomarkers", .SD,
                    .SDcols=c("version", "modelID", paste0("AUC_",c(str_pad(1:15, 2, pad="0"), "mean")))],
-  cbind(version="Without extra biomarkers",
+  cbind(version="Standard biomarkers",
         modelID="Ensemble", 
         ensemble_noXB)
 )
@@ -317,7 +320,7 @@ for (vsn in c("withXB", "noXB")){
 ROC_1vall_withXB<- ggroc(roc_objects$withXB) + 
   geom_segment(aes(x = 1, xend = 0, y = 0, yend = 1), color="grey", linetype="dashed") +
   theme(legend.position = "none")+
-  ggtitle("With extra biomarkers")+
+  ggtitle("Extra biomarkers")+
   #guides(col = guide_legend(nrow = 2))+
   scale_color_manual(
     values = c("turquoise2", "turquoise2", "turquoise2",
@@ -336,7 +339,7 @@ ROC_1vall_withXB<- ggroc(roc_objects$withXB) +
 ROC_1vall_noXB<- ggroc(roc_objects$noXB) + 
   geom_segment(aes(x = 1, xend = 0, y = 0, yend = 1), color="grey", linetype="dashed") +
   theme(legend.position = "none")+
-  ggtitle("Without extra biomarkers")+
+  ggtitle("Standard biomarkers")+
   #guides(col = guide_legend(nrow = 2))+
   scale_color_manual(
     values = c("turquoise2", "turquoise2", "turquoise2",
@@ -397,7 +400,28 @@ AUCs_by_fold_mean_CI <- AUCs_by_fold_long[ , list(
 fwrite(AUCs_by_fold_mean_CI, "./4_output/AUC_results_meanCI.csv")
 
 
+## SAVE AUC AND HYPERPARAMETERS FOr THE TOP MODEL OF EACH TYPE
+#Top by model type and version
+top_mods <- tune_results_all[,.SD[which.max(AUC_mean)],by=.(model,version), .SDcols = c("modelID", "AUC_mean", "AUC_lb", "AUC_ub")]
+top_mods[, AUC_disp := paste0(percent(AUC_mean, accuracy = .01), " (",percent(AUC_lb, accuracy = .01)," - ",percent(AUC_ub, accuracy = .01),")")]
+#top_mods[,  ID := str_split(modelID, "\\.")[[1]][2], by=AUC_mean ]
+top_mods[,
+         hyperparams := 
+           fifelse(modelID=="XGB.770", list(as.list(xgb_param_sets[770,])),
+                   fifelse(modelID=="XGB.109", list(as.list(xgb_param_sets[109,])),
+                           fifelse(modelID=="elastic_net.1", list(as.list(en_param_sets[1,])),
+                                   fifelse(modelID=="elastic_net.2", list(as.list(en_param_sets[2,])),
+                                           fifelse(modelID=="elastic_net_interactions.16", list(as.list(enint_param_sets[16,])),
+                                                   fifelse(modelID=="elastic_net_interactions.4", list(as.list(enint_param_sets[4,])),
+                                                           fifelse(modelID=="random_forest.76", list(as.list(rf_param_sets[76,])),
+                                                                   fifelse(modelID=="random_forest.39", list(as.list(rf_param_sets[39,])),
+                                                                           fifelse(modelID=="rpart.21", list(as.list(rpart_param_sets[21,])),
+                                                                                           list("ERROR"))))))))))
+         ]
 
+
+
+saveRDS(top_mods,"./3_intermediate/tuning_results/tuning_results_top_by_modtype_version.rds")
 
 
 
