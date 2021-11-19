@@ -21,7 +21,7 @@ header-includes:
 
 <br>
 
-W. Alton Russell^1,2^, David Schienker^1,3,4,5^, Brian Custer^2,6^
+W. Alton Russell^1,2^, David Scheinker^1,3,4,5^, Brian Custer^2,6^
 
 <br>
 
@@ -423,7 +423,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        bkm_all = TRUE,
                         prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
-knitr::include_graphics("../4_output/figs/ae_traject_by_Index_donation_iron_status.png")
+knitr::include_graphics("../4_output/figs/ea_traject_by_iron_status.png")
 
 block_caption("Average risk trajectory with 95% confidence intervals for donors in the first return dataset stratified by iron status at index donation, defined by the donor's ferritin level.", 
               style = "Image Caption", 
@@ -439,7 +439,7 @@ fig_num <- run_autonum(seq_id = "fig",
                        bkm_all = TRUE,
                         prop = fp_text(bold=TRUE, underlined = TRUE, italic = FALSE))
 
-knitr::include_graphics("../4_output/figs/ae_traject_by_Venous_HGB_tertile.png")
+ knitr::include_graphics("../4_output/figs/ae_traject_by_venous_hgb.png")
 
 block_caption("Average risk trajectory with 95% confidence intervals for donors in the first return dataset stratified by venous hemoglobin (HGB) measured at the index donation in g/dL.",
               style = "Image Caption", 
