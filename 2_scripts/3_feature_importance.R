@@ -132,3 +132,17 @@ featimp_median <- rbind(
 )
 fwrite(featimp_median, "./4_output/feature_importance_medians.csv")
 
+
+#Mini plot for Grant
+feats_for_mini <- c("Ferritin", median_noXB[median_imp >.005]$display_name)
+dt_mini <- featimp_both[display_name %in% feats_for_mini]
+dt_mini[, mod:=ifelse(mod=="Extra biomarkers", "With\nferritin", "Without")]
+
+ggplot(dt_mini)+
+  geom_boxplot(aes(x=reorder(display_name, AUC_multi_pctchg, FUN = median), y=AUC_multi_pctchg))+
+  facet_grid(cols = vars(mod))+
+  coord_flip()+geom_hline(yintercept=0, color="red")+
+  scale_y_continuous(labels = label_percent(accuracy=1), breaks = c(0, .03, .06), name = "Relative variable\nimportance")+
+  xlab("")
+ggsave("./4_output/figs/feat_imp_mini.png",
+       width = 3.4, height = 2, units = "in")

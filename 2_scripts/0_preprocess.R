@@ -492,8 +492,10 @@ d.all[, outcome := fifelse(DER_VisitResult == 3,
                                                           0#1=no adverse event
                                                           ))))]
 
+##Main analysis: Index donations must have >150ml RBC lost, not including 2RBC
 d.all[, iron_loss_visit := ifelse(DER_RBCLoss_mL > 55, 1, 0)]
 d.all[, index_donation := ifelse(DER_RBCLoss_mL > 150 & DER_RBCLoss_Units < 2, 1, 0)]
+
 
 
 d.labeled <- cbind(d.all[is.na(RandID)],
@@ -523,6 +525,75 @@ for (row_idx in 1:nrow(d.all)){
 
   }
 }
+
+
+
+# ##Separate analysis for 2RBC: Donations with >150ml RBC lost and are classified as 2 units lost
+# d.all[, iron_loss_visit := ifelse(DER_RBCLoss_mL > 55, 1, 0)]
+# d.all[, index_donation := ifelse(DER_RBCLoss_mL > 150 & DER_RBCLoss_Units == 2, 1, 0)]
+# 
+# 
+# 
+# d.labeled <- cbind(d.all[is.na(RandID)],
+#                    "time_to_fu" = numeric(),
+#                    "fu_outcome"= character())
+# 
+# 
+# for (row_idx in 1:nrow(d.all)){
+#   if(d.all[row_idx, index_donation]==1){
+#     #if qualifies as index visit, get all subsequent visits from donor
+#     d.index_visit <- d.all[row_idx]
+#     d.fu_visits <- d.all[RandID==d.index_visit$RandID & VisitNum > d.index_visit$VisitNum]
+#     reached_iron_loss_visit <- FALSE
+#     row_fu <- 1
+#     while (reached_iron_loss_visit == FALSE & row_fu <= nrow(d.fu_visits)){
+#       d.labeled <- rbind(
+#         d.labeled,
+#         cbind(d.index_visit,
+#               "time_to_fu" = d.fu_visits[row_fu, VisitDate] - d.index_visit$VisitDate,
+#               "fu_outcome" = d.fu_visits[row_fu, outcome]
+#         )
+#       )
+#       
+#       reached_iron_loss_visit <- fifelse(d.fu_visits[row_fu]$iron_loss_visit == 1, TRUE, FALSE)
+#       row_fu = row_fu+1
+#     }
+#     
+#   }
+# }
+# d.firstreturn <- cbind(d.all[is.na(RandID)],
+#                        "time_to_fu" = numeric(),
+#                        "fu_outcome"= character())
+# 
+# for (row_idx in 1:nrow(d.all)){
+#   if(d.all[row_idx, index_donation]==1){
+#     #if qualifies as index visit, get all subsequent visits from donor
+#     d.index_visit <- d.all[row_idx]
+#     d.fu_visits <- d.all[RandID==d.index_visit$RandID & VisitNum > d.index_visit$VisitNum]
+#     fu_visit_added <- FALSE
+#     row_fu <- 1
+#     while (fu_visit_added == FALSE & row_fu <= nrow(d.fu_visits)){
+#       if(
+#         d.fu_visits[row_fu, DER_VisitResult == 3 | DER_RBCLoss_mL >= 55]
+#       ){
+#         d.firstreturn <- rbind(
+#           d.firstreturn,
+#           cbind(d.index_visit,
+#                 "time_to_fu" = d.fu_visits[row_fu, VisitDate] - d.index_visit$VisitDate,
+#                 "fu_outcome" = d.fu_visits[row_fu, outcome]
+#           )
+#         )
+#         fu_visit_added <- TRUE
+#         
+#       }
+#       
+#       row_fu = row_fu+1
+#     }
+#     
+#   }
+# }
+
+
 
 #Distribution of outcome including undetermined
 table(d.labeled$fu_outcome)
@@ -587,3 +658,35 @@ view(dfSummary(d.firstreturn), file="./3_intermediate/data_summary_firstreturn.h
 
 
 fwrite(d.firstreturn, "./1_data/first_return_dataset.csv")
+
+
+# Covariance matrix ----------------------------
+dt.md <- fread( "./1_data/model_dev_data/ml_training_data.csv")
+identifiers <- c("RandID", "VisitDate", "VisitNum", "DER_VisitResult", "DV_Donproc", "DER_RBCLoss_Units")
+#remove extraneous fields
+dt.md[, c(identifiers) := NULL]
+#remove index donations missing hemoglobin
+dt.md<- dt.md[!is.na(FingerstickHGB_equiv)]
+
+dt.md.OH <- data.table(model.matrix(fu_outcome~ ., data=dt.md))
+dt.md.OH[,`(Intercept)`:=NULL]
+#run a correlation and drop the insignificant ones
+corr <- cor(dt.md.OH)
+#prepare to drop duplicates and correlations of 1     
+corr[lower.tri(corr,diag=TRUE)] <- NA 
+#drop perfect correlations
+corr[corr == 1] <- NA 
+#turn into a 3-column table
+corr <- as.data.frame(as.table(corr))
+#remove the NA values from above 
+corr <- na.omit(corr) 
+#select significant values  
+corr <- subset(corr, abs(Freq) > .5) 
+#sort by highest correlation
+corr <- corr[order(-abs(corr$Freq)),] 
+#print table
+corr <- as.data.table(corr)
+
+setnames(corr, c("Var1", "Var2", "Freq"),c("Variable 1", "Variable 2","Correlation coefficient"))
+
+fwrite(corr, "./3_intermediate/corr_table_data.csv")

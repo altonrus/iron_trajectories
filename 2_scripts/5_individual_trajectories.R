@@ -21,6 +21,8 @@ dt.fr <- fread("./1_data/first_return_dataset.csv")
 dt.fr <- dt.fr[!is.na(FingerstickHGB_equiv)]
 dt.fr<-dt.fr[time_to_fu >=56]
 dt.frXB <- dt.fr[!is.na(ARUP_Ferritin)]
+
+
 ##
 # GENERATE RISK TRAJECTORIES MATRIX -------------------
 ##
@@ -188,15 +190,17 @@ dt_long_risk_matrix_sm[,  ex_group := ifelse(Idx_donation %in% tail(Idx_slow_rec
 dt_any_AE <- cbind(dt_long_risk_matrix_sm[outcome=="None", ])
 dt_any_AE[, Risk := 1-Risk]
 dt_any_AE[, outcome := "Any adverse event"]
+
 p_top <- ggplot(dt_any_AE, aes(x=time_to_fu, y=Risk))+
   geom_line(aes(group = Idx_donation, color = ex_group, 
-                alpha= ex_group, size = ex_group))+
+                alpha= ex_group, size = ex_group, linetype = ex_group))+
   facet_wrap(vars(outcome), nrow=1)+
-  scale_y_continuous(name="Probability", labels=percent_format())+
-  scale_color_manual(values=c("grey", "red2", "springgreen4", "darkorange3"), name="Example trajectories")+
+  scale_y_continuous(name=element_blank(), labels=percent_format())+
+  scale_color_manual(values=c("grey", "red2", "springgreen3", "darkorange3"), name="Example trajectories")+
   scale_x_continuous(limits = c(56, 250), breaks = c(56, 150, 250), name="")+
+  scale_linetype_manual(values=c("solid", "solid", "longdash","solid"),name="Example\nTrajectories")+
   scale_alpha_manual(values=c(0.4, 1, 1, 1), name="Example trajectories")+
-  scale_size_manual(values=c(0.2, 1, 1, 1))+
+  scale_size_manual(values=c(0.2, 0.6,0.6,0.6))+
   theme(legend.position = "None")
 
 outcome_labs <-c(
@@ -208,24 +212,35 @@ outcome_labs <-c(
 
 p_bottom <- ggplot(dt_long_risk_matrix_sm[outcome!="None"], aes(x=time_to_fu, y=Risk))+
   geom_line(aes(group = Idx_donation, color = ex_group, 
-                alpha= ex_group, size = ex_group))+
+                alpha= ex_group, size = ex_group, linetype = ex_group))+
   facet_wrap(vars(outcome), nrow=1, labeller = as_labeller(outcome_labs))+
-  scale_y_continuous(name="Probability", labels=percent_format())+
-  scale_x_continuous(limits = c(56, 250), breaks = c(56, 100, 150, 200, 250), name="Days until next donation")+
-  scale_color_manual(values=c("grey", "red2", "springgreen4", "darkorange3"), name="Example\nTrajectories")+
+  scale_y_continuous(name=element_blank(), labels=percent_format())+
+  scale_x_continuous(limits = c(56, 250), breaks = c(56, 100, 150, 200, 250), name="Days until next donation attempt")+
+  scale_color_manual(values=c("grey", "red2", "springgreen3", "darkorange3"), name="Example\nTrajectories")+
   scale_alpha_manual(values=c(0.4, 1, 1, 1), name="Example\nTrajectories")+
-  scale_size_manual(values=c(0.2, 1, 1, 1), name="Example\nTrajectories")+
+  scale_size_manual(values=c(0.2, 0.6,0.6,0.6), name="Example\nTrajectories")+
+  scale_linetype_manual(values=c("solid", "solid", "longdash","solid"),name="Example\nTrajectories")+
   theme(legend.position = "bottom")#+
   #guides(color=guide_legend(nrow=2,byrow=TRUE))
 
 
-grid.arrange(p_top, p_bottom, ncol=1)
+yleft <- textGrob("Probability of adverse event", 
+                  rot = 90, gp = gpar(fontsize = 11), just = 0.4)
+
 ggsave("4_output/figs/each_ae_traject.png",
-       grid.arrange(p_top, p_bottom, ncol=1),
+       plot = grid.arrange(p_top, p_bottom, ncol=1, left = yleft),
        width = 6,
        height = 5,
        units = "in"
 )
+
+ggsave("4_output/figs/each_ae_traject.pdf",
+       plot = grid.arrange(p_top, p_bottom, ncol=1, left = yleft),
+       width = 6,
+       height = 5,
+       units = "in"
+)
+
 
 ggplot(dt_any_AE, aes(x=time_to_fu, y=Risk))+
   geom_line(aes(group = Idx_donation, color = ex_group, 
@@ -233,13 +248,19 @@ ggplot(dt_any_AE, aes(x=time_to_fu, y=Risk))+
   #facet_wrap(vars(outcome), nrow=1)+
   scale_y_continuous(name="Prob. adverse event", labels=percent_format())+
   scale_x_continuous(name="Days until next donation attempt")+
-  scale_color_manual(values=c("grey", "red2", "springgreen4", "darkorange3"), name="")+
+  scale_color_manual(values=c("grey", "red2", "springgreen", "darkorange3"), name="")+
   scale_alpha_manual(values=c(0.4, 1, 1, 1), name="")+
   scale_size_manual(values=c(0.2, 1, 1, 1), name="")+
   theme(legend.position = "bottom")
 
 
 ggsave("4_output/figs/any_ae_traject.png",
+       width = 5,
+       height = 2.3,
+       units = "in"
+)
+
+ggsave("4_output/figs/any_ae_traject.pdf",
        width = 5,
        height = 2.3,
        units = "in"
@@ -269,7 +290,7 @@ for(plot_num in 1:60){
                  axis.line.y = element_blank(),
                  axis.title = element_blank(),
                  axis.text.x = element_text(size=10))+
-           scale_fill_manual(values = c("#00FFFF", "#FBD808", "#FF9005", "#FF0000"))
+           scale_fill_manual(values = c("#b8ffff", "#e8c700", "#d97900", "#b80202"))
          #xlab("Days until donation attempt")+
          #ylab("Probability of outcome")
          
@@ -296,8 +317,34 @@ ggsave("./4_output/figs/trajectories_60_random.png",
        height = 8.9,
        units = "in"
 )
+ggsave("./4_output/figs/trajectories_60_random.pdf",
+       plot = plot_grid(plot_traj_1, plot_traj_2, plot_traj_3, plot_traj_4, plot_traj_5,
+                        plot_traj_6, plot_traj_7, plot_traj_8, plot_traj_9, plot_traj_10, 
+                        plot_traj_11, plot_traj_12, plot_traj_13, plot_traj_14, plot_traj_15,
+                        plot_traj_16, plot_traj_17, plot_traj_18, plot_traj_19, plot_traj_20,
+                        plot_traj_21, plot_traj_22, plot_traj_23, plot_traj_24, plot_traj_25,
+                        plot_traj_26, plot_traj_27, plot_traj_28, plot_traj_29, plot_traj_30, 
+                        plot_traj_31, plot_traj_32, plot_traj_33, plot_traj_34, plot_traj_35,
+                        plot_traj_36, plot_traj_37, plot_traj_38, plot_traj_39, plot_traj_40,
+                        plot_traj_41, plot_traj_42, plot_traj_43, plot_traj_44, plot_traj_45,
+                        plot_traj_46, plot_traj_47, plot_traj_48, plot_traj_49, plot_traj_40, 
+                        plot_traj_51, plot_traj_52, plot_traj_53, plot_traj_54, plot_traj_55,
+                        plot_traj_56, plot_traj_57, plot_traj_58, plot_traj_59, plot_traj_60,
+                        ncol = 5),
+       width = 6.5,
+       height = 8.9,
+       units = "in"
+)
 
 ggsave("./4_output/figs/trajectories_3.png",
+       plot = plot_grid(plot_traj_4, plot_traj_29, plot_traj_6,
+                        ncol = 3),
+       width = 5,
+       height = 1,
+       units = "in"
+)
+
+ggsave("./4_output/figs/trajectories_3.pdf",
        plot = plot_grid(plot_traj_4, plot_traj_29, plot_traj_6,
                         ncol = 3),
        width = 5,
@@ -325,7 +372,7 @@ for(donor_num in archetype_donor_nums){
                  axis.line.y = element_blank(),
                  axis.title = element_blank(),
                  axis.text.x = element_text(size=10))+
-           scale_fill_manual(values = c("#00FFFF", "#FBD808", "#FF9005", "#FF0000"),
+           scale_fill_manual(values = c("#b8ffff", "#e8c700", "#d97900", "#b80202"),
                              labels = c("No adverse outcome",
                                         "Hemoglobin deferral",
                                         "Low iron donation",
@@ -353,7 +400,7 @@ title2 <- ggdraw() +
     x = 0,
     hjust = 0
   )
-plot_row_sr <- plot_grid(plot_archetype_121, plot_archetype_394,plot_archetype_787,plot_archetype_1781,
+plot_row_sr <- plot_grid(plot_archetype_121, plot_archetype_394,plot_archetype_787,plot_archetype_856,
                          ncol = 4)
 title3 <- ggdraw() + 
   draw_label(
@@ -387,7 +434,19 @@ ggsave(
             rel_heights = c(rep(c(0.22, 1),3),.5)),
   width = 5, height = 4.5, units="in"
 )
-
+ggsave(
+  "./4_output/figs/indiv_plots_archetypes.pdf",
+  plot_grid(title1,
+            plot_row_fr,
+            title2,
+            plot_row_sr,
+            title3,
+            plot_row_chr,
+            legend,
+            ncol =1,
+            rel_heights = c(rep(c(0.22, 1),3),.5)),
+  width = 5, height = 4.5, units="in"
+)
 
 
 

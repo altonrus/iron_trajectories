@@ -48,7 +48,7 @@ fwrite(tune_results_all, "./3_intermediate/tuning_results/tuning_results_all.csv
 #   ylab("Mean overall AUC\ncross validation across 15 tuning sets")+xlab("Model types")+
 #   scale_x_discrete(labels = c("Elastic Net", "Elastic net\nwith interactions", "Random forest", "Regression trees", "Gradient\nboosted trees"))
 # 
-
+tune_results_all <- fread("./3_intermediate/tuning_results/tuning_results_all.csv")
 mod_names <- c("Gradient boosted trees", 
                "Random forest",
                "Elastic net with interactions", 
@@ -264,7 +264,8 @@ ggsave("./4_output/figs/AUC_top_models.png",
 # # # # # 
 #### ASSESS TOP MODELS (withXB and noXB) on outer folds ####
 # # # # #
-
+base_mod_spec_XB <- readRDS("./1_data/base_mod_spec_XB.RDS")
+base_mod_spec_noXB <- readRDS("./1_data/base_mod_spec_noXB.RDS")
 #outer_fold_assess(base_mod_spec = base_mod_spec_noXB$random_forest.39, version="withXB")
 #outer_fold_assess(base_mod_spec = base_mod_spec_noXB$random_forest.39, version="noXB")
 outer_fold_assess_ensemble(base_model_specs = base_mod_spec_XB, 
@@ -273,6 +274,9 @@ outer_fold_assess_ensemble(base_model_specs = base_mod_spec_XB,
 outer_fold_assess_ensemble(base_model_specs = base_mod_spec_noXB, 
                            path = "./3_intermediate/",
                            version="noXB")
+
+
+
 #TOP OVERALL MODEL
 #Multiclass AUCs (avg pairwise Hand and Till 2001)
 dt_outer_preds_all_repeats <- rbind(
@@ -317,16 +321,16 @@ for (vsn in c("withXB", "noXB")){
 
 
 
-ROC_1vall_withXB<- ggroc(roc_objects$withXB) + 
+ROC_1vall_withXB<- ggroc(roc_objects$withXB, aes=c("linetype", "color")) + 
   geom_segment(aes(x = 1, xend = 0, y = 0, yend = 1), color="grey", linetype="dashed") +
   theme(legend.position = "none")+
   ggtitle("Extra biomarkers")+
   #guides(col = guide_legend(nrow = 2))+
   scale_color_manual(
-    values = c("turquoise2", "turquoise2", "turquoise2",
-               "yellow2", "yellow2", "yellow2",
-               "darkorange1", "darkorange1", "darkorange1",
-               "red1","red1", "red1"),
+    values = rep(c("#4affff", "#e8c700", "#d97900", "#b80202"),each=3),
+    labels = rep(c("None", "HGB deferral", "Low iron donation", "Absent iron donation"),each=3))+
+  scale_linetype_manual(
+    values = rep(c("solid", "longdash", "dotdash", "twodash"),each=3),
     labels = rep(c("None", "HGB deferral", "Low iron donation", "Absent iron donation"),each=3))+
   xlab("Specificity")+ylab("Sensitivity")+
   geom_point(aes(x=0.75, y=0.75), fill="black", color="black", size = 2)
@@ -336,16 +340,16 @@ ROC_1vall_withXB<- ggroc(roc_objects$withXB) +
 #        height = 4.5,
 #        unit = "in")
 
-ROC_1vall_noXB<- ggroc(roc_objects$noXB) + 
+ROC_1vall_noXB<- ggroc(roc_objects$noXB, aes=c("linetype", "color")) + 
   geom_segment(aes(x = 1, xend = 0, y = 0, yend = 1), color="grey", linetype="dashed") +
   theme(legend.position = "none")+
   ggtitle("Standard biomarkers")+
   #guides(col = guide_legend(nrow = 2))+
   scale_color_manual(
-    values = c("turquoise2", "turquoise2", "turquoise2",
-               "yellow2", "yellow2", "yellow2",
-               "darkorange1", "darkorange1", "darkorange1",
-               "red1","red1", "red1"),
+    values = rep(c("#4affff", "#e8c700", "#d97900", "#b80202"),each=3),
+    labels = rep(c("None", "HGB deferral", "Low iron donation", "Absent iron donation"),each=3))+
+  scale_linetype_manual(
+    values = rep(c("solid", "longdash", "dotdash", "twodash"),each=3),
     labels = rep(c("None", "HGB deferral", "Low iron donation", "Absent iron donation"),each=3))+
   xlab("Specificity")+ylab("Sensitivity")+
   geom_point(aes(x=0.75, y=0.75), fill="black", color="black", size = 2)
@@ -361,15 +365,24 @@ g_legend<-function(a.gplot){
 mylegend<-g_legend(
   ggplot(data = data.table(Cat=factor(c("No adverse outcome", "HGB deferral", "Low iron donation", "Absent iron donation"),
                                       levels = c("No adverse outcome", "HGB deferral", "Low iron donation", "Absent iron donation"))))+
-    geom_bar(aes(x=Cat, fill=Cat))+
-    scale_fill_manual(values=c("turquoise2","yellow2","darkorange1","red1"),
+    geom_line(aes(x=Cat, color=Cat, linetype=Cat, y=Cat))+
+    scale_color_manual(values=c("#4affff", "#e8c700", "#d97900", "#b80202"),
                                name="")+
-    guides(fill=guide_legend(nrow=1))
+    scale_linetype_manual(values=c("solid", "longdash","dotdash", "twodash"),
+                          name="")+
+    guides(color=guide_legend(nrow=1),
+           linetype = guide_legend(nrow=1))
 )
 
 
 
 ggsave("./4_output/figs/ROC_compare.png",
+       plot=grid.arrange(arrangeGrob(ROC_1vall_noXB,ROC_1vall_withXB,nrow=1),
+                         mylegend,nrow=2, heights=c(7,1)),
+       width = 6.5,
+       height = 4,
+       unit = "in")
+ggsave("./4_output/figs/ROC_compare.pdf",
        plot=grid.arrange(arrangeGrob(ROC_1vall_noXB,ROC_1vall_withXB,nrow=1),
                          mylegend,nrow=2, heights=c(7,1)),
        width = 6.5,
